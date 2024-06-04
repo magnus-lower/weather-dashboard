@@ -11,10 +11,13 @@
         <h1>Weather Dashboard</h1>
         <input type="text" id="cityInput" placeholder="Enter city name">
         <input type="text" id="countryInput" placeholder="Enter country code (optional)">
-        <button onclick="fetchWeather()">Get Weather</button>
-        <button onclick="fetchWeatherByLocation()">Get Weather by Location</button>
-        <div id="loading">Loading...</div>
+        <button id="getWeatherBtn">Get Weather</button>
+        <button id="getWeatherByLocationBtn">Get Weather by Location</button>
         <div id="weatherData"></div>
+        <div id="favoriteList"></div>
+        <div id="loadingSpinner" class="spinner-overlay" style="display:none;">
+            <div class="spinner"></div>
+        </div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

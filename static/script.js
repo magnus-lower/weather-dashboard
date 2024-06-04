@@ -1,73 +1,87 @@
-document.getElementById('loading').style.display = 'none';
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('getWeatherBtn').addEventListener('click', fetchWeather);
+    document.getElementById('getWeatherByLocationBtn').addEventListener('click', fetchWeatherByLocation);
+});
+
+function showLoadingSpinner() {
+    document.getElementById('loadingSpinner').style.display = 'flex';
+}
+
+function hideLoadingSpinner() {
+    document.getElementById('loadingSpinner').style.display = 'none';
+}
+
+function clearWeatherData() {
+    document.getElementById('weatherData').innerHTML = '';
+}
+
+function displayWeatherData(data) {
+    document.getElementById('weatherData').innerHTML = `
+        <h2>${data.name}</h2>
+        <p>Temperature: ${Math.round(data.main.temp - 273.15)}°C</p>
+        <p>Weather: ${data.weather[0].description}</p>
+    `;
+}
+
+function showAlert(message) {
+    alert(message);
+}
+
+function handleFetchError(error) {
+    hideLoadingSpinner();
+    clearWeatherData();
+    showAlert('There was an error fetching the weather data. Please try again later.');
+    console.error(error);
+}
 
 function fetchWeather() {
-    const city = document.getElementById('cityInput').value.trim();
-    const country = document.getElementById('countryInput').value.trim() || 'NO';
-
-    if (!city) {
-        alert('Please enter a city name.');
-        return;
-    }
-
-    document.getElementById('loading').style.display = 'block';
+    const city = document.getElementById('cityInput').value;
+    const country = document.getElementById('countryInput').value || 'NO'; // Default to 'NO' if no country code is provided
+    showLoadingSpinner();
     fetch(`/weather?city=${city}&country=${country}`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('loading').style.display = 'none';
-            if (data.error) {
-                alert(data.error);
-                document.getElementById('weatherData').innerHTML = ''; // Clear previous data
-                return;
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
-            displayWeather(data);
+            return response.json();
         })
-        .catch(error => {
-            document.getElementById('loading').style.display = 'none';
-            console.error('Error fetching weather data:', error);
-            alert('There was an error fetching the weather data. Please try again later.');
-            document.getElementById('weatherData').innerHTML = ''; // Clear previous data
-        });
+        .then(data => {
+            hideLoadingSpinner();
+            if (data.error) {
+                clearWeatherData();
+                showAlert(data.error);
+            } else {
+                displayWeatherData(data);
+            }
+        })
+        .catch(handleFetchError);
 }
 
 function fetchWeatherByLocation() {
     if (navigator.geolocation) {
+        showLoadingSpinner();
         navigator.geolocation.getCurrentPosition(position => {
-            const { latitude, longitude } = position.coords;
-            document.getElementById('loading').style.display = 'block';
-            fetch(`/weather_by_coords?lat=${latitude}&lon=${longitude}`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('loading').style.display = 'none';
-                    if (data.error) {
-                        alert(data.error);
-                        document.getElementById('weatherData').innerHTML = ''; // Clear previous data
-                        return;
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            fetch(`/weather_by_coords?lat=${lat}&lon=${lon}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
                     }
-                    displayWeather(data);
+                    return response.json();
                 })
-                .catch(error => {
-                    document.getElementById('loading').style.display = 'none';
-                    console.error('Error fetching weather data by coordinates:', error);
-                    alert('There was an error fetching the weather data. Please try again later.');
-                    document.getElementById('weatherData').innerHTML = ''; // Clear previous data
-                });
-        }, error => {
-            alert('Geolocation is not supported by this browser.');
+                .then(data => {
+                    hideLoadingSpinner();
+                    if (data.error) {
+                        clearWeatherData();
+                        showAlert(data.error);
+                    } else {
+                        displayWeatherData(data);
+                    }
+                })
+                .catch(handleFetchError);
         });
     } else {
-        alert('Geolocation is not supported by this browser.');
+        showAlert('Geolocation is not supported by this browser.');
     }
-}
-
-function displayWeather(data) {
-    const tempC = Math.round(data.main.temp - 273.15);
-    const iconCode = data.weather[0].icon;
-    const iconUrl = `http://openweathermap.org/img/wn/${iconCode}@2x.png`;
-
-    document.getElementById('weatherData').innerHTML = `
-        <h2>${data.name}</h2>
-        <p>Temperature: ${tempC}°C</p>
-        <p>Weather: ${data.weather[0].description}</p>
-        <img src="${iconUrl}" alt="Weather icon">
-    `;
 }
