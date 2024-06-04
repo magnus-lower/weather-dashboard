@@ -31,7 +31,14 @@ button:hover {
     background-color: #0056b3;
 }
 
-#weatherData, #forecastData {
+#loading {
+    display: none;
+    margin-top: 20px;
+    font-size: 18px;
+    color: #007bff;
+}
+
+#weatherData {
     margin-top: 20px;
     text-align: left;
 }
