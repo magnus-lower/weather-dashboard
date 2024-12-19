@@ -1,8 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 import requests
 import os
+from flask_caching import Cache
 
 app = Flask(__name__)
+
+# Configure cache
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
 API_KEY = os.getenv('API_KEY')
 BASE_URL = 'https://api.openweathermap.org/data/2.5/'
 
@@ -21,6 +26,7 @@ def home():
 
 
 @app.route('/weather', methods=['GET'])
+@cache.cached(timeout=300, query_string=True)  # Cache for 5 minutes
 def get_weather():
     city = request.args.get('city')
     country = request.args.get('country', 'NO')
@@ -33,6 +39,7 @@ def get_weather():
 
 
 @app.route('/weather_by_coords', methods=['GET'])
+@cache.cached(timeout=300, query_string=True)  # Cache for 5 minutes
 def get_weather_by_coords():
     lat = request.args.get('lat')
     lon = request.args.get('lon')
