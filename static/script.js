@@ -20,11 +20,19 @@ function clearWeatherData() {
 
 function displayWeatherData(data) {
     const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+    const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
+    const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
+
     document.getElementById('weatherData').innerHTML = `
         <img src="${iconUrl}" alt="Weather Icon" class="weather-icon">
         <h2>${data.name}</h2>
         <p>Temperature: ${Math.round(data.main.temp - 273.15)}°C</p>
+        <p>Feels Like: ${Math.round(data.main.feels_like - 273.15)}°C</p>
         <p>Weather: ${data.weather[0].description}</p>
+        <p>Humidity: ${data.main.humidity}%</p>
+        <p>Wind Speed: ${data.wind.speed} m/s</p>
+        <p>Sunrise: ${sunrise}</p>
+        <p>Sunset: ${sunset}</p>
     `;
     updateBackground(data.weather[0].main.toLowerCase());
 }
