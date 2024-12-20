@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('getWeatherBtn').addEventListener('click', fetchWeather);
     document.getElementById('getForecastBtn').addEventListener('click', fetchForecast);
-    document.getElementById('getWeatherByLocationBtn').addEventListener('click', fetchWeatherByLocation);
+
+    // Automatically fetch weather by location
+    fetchWeatherByLocation();
 });
 
 function showLoadingSpinner() {
@@ -26,51 +28,10 @@ function displayWeatherData(data) {
     `;
 }
 
-function displayForecastData(data) {
-    clearWeatherData();
-    const forecastContainer = document.getElementById('weatherData');
-    const forecastList = data.list;
-    const forecastByDate = {};
-
-    // Group forecasts by date
-    forecastList.forEach(forecast => {
-        const date = forecast.dt_txt.split(' ')[0];
-        if (!forecastByDate[date]) {
-            forecastByDate[date] = [];
-        }
-        forecastByDate[date].push(forecast);
-    });
-
-    // Display forecast data
-    for (const date in forecastByDate) {
-        const dateElement = document.createElement('h3');
-        dateElement.textContent = new Date(date).toDateString();
-        forecastContainer.appendChild(dateElement);
-
-        forecastByDate[date].forEach(forecast => {
-            const time = forecast.dt_txt.split(' ')[1].slice(0, 5);
-            const iconUrl = `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`;
-            const forecastElement = document.createElement('div');
-            forecastElement.classList.add('forecast-item');
-            forecastElement.innerHTML = `
-                <img src="${iconUrl}" alt="Weather Icon" class="weather-icon">
-                <p><strong>Time:</strong> ${time}</p>
-                <p><strong>Temperature:</strong> ${Math.round(forecast.main.temp - 273.15)}°C</p>
-                <p><strong>Weather:</strong> ${forecast.weather[0].description}</p>
-            `;
-            forecastContainer.appendChild(forecastElement);
-        });
-    }
-}
-
-function showAlert(message) {
-    alert(message);
-}
-
 function handleFetchError(error) {
     hideLoadingSpinner();
     clearWeatherData();
-    showAlert('There was an error fetching the weather data. Please try again later.');
+    alert('There was an error fetching the weather data. Please try again later.');
     console.error(error);
 }
 
@@ -78,7 +39,7 @@ function fetchWeather() {
     const city = document.getElementById('cityInput').value;
     const country = document.getElementById('countryInput').value || 'NO';
     if (!city) {
-        showAlert('Please enter a city name.');
+        alert('Please enter a city name.');
         return;
     }
     showLoadingSpinner();
@@ -93,7 +54,7 @@ function fetchWeather() {
             hideLoadingSpinner();
             if (data.error) {
                 clearWeatherData();
-                showAlert(data.error);
+                alert(data.error);
             } else {
                 displayWeatherData(data);
             }
@@ -105,7 +66,7 @@ function fetchForecast() {
     const city = document.getElementById('cityInput').value;
     const country = document.getElementById('countryInput').value || 'NO';
     if (!city) {
-        showAlert('Please enter a city name.');
+        alert('Please enter a city name.');
         return;
     }
     showLoadingSpinner();
@@ -120,9 +81,9 @@ function fetchForecast() {
             hideLoadingSpinner();
             if (data.error) {
                 clearWeatherData();
-                showAlert(data.error);
+                alert(data.error);
             } else {
-                displayForecastData(data);
+                displayWeatherData(data);
             }
         })
         .catch(handleFetchError);
@@ -145,7 +106,7 @@ function fetchWeatherByLocation() {
                     hideLoadingSpinner();
                     if (data.error) {
                         clearWeatherData();
-                        showAlert(data.error);
+                        alert(data.error);
                     } else {
                         displayWeatherData(data);
                     }
@@ -153,10 +114,10 @@ function fetchWeatherByLocation() {
                 .catch(handleFetchError);
         }, error => {
             hideLoadingSpinner();
-            showAlert('Unable to retrieve your location.');
+            alert('Unable to retrieve your location.');
             console.error(error);
         });
     } else {
-        showAlert('Geolocation is not supported by this browser.');
+        alert('Geolocation is not supported by this browser.');
     }
 }
