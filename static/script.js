@@ -26,6 +26,34 @@ function displayWeatherData(data) {
         <p>Temperature: ${Math.round(data.main.temp - 273.15)}°C</p>
         <p>Weather: ${data.weather[0].description}</p>
     `;
+    updateBackground(data.weather[0].main.toLowerCase());
+}
+
+function updateBackground(weatherCondition) {
+    const body = document.body;
+    switch (weatherCondition) {
+        case 'clear':
+            body.style.background = 'linear-gradient(to bottom, #87CEFA, #f4f4f4)';
+            break;
+        case 'clouds':
+            body.style.background = 'linear-gradient(to bottom, #B0C4DE, #f4f4f4)';
+            break;
+        case 'rain':
+            body.style.background = 'linear-gradient(to bottom, #708090, #f4f4f4)';
+            break;
+        case 'snow':
+            body.style.background = 'linear-gradient(to bottom, #E0FFFF, #f4f4f4)';
+            break;
+        case 'thunderstorm':
+            body.style.background = 'linear-gradient(to bottom, #2F4F4F, #f4f4f4)';
+            break;
+        case 'drizzle':
+            body.style.background = 'linear-gradient(to bottom, #4682B4, #f4f4f4)';
+            break;
+        default:
+            body.style.background = 'linear-gradient(to bottom, #D3D3D3, #f4f4f4)';
+            break;
+    }
 }
 
 function handleFetchError(error) {
