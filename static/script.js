@@ -17,7 +17,9 @@ function clearWeatherData() {
 }
 
 function displayWeatherData(data) {
+    const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
     document.getElementById('weatherData').innerHTML = `
+        <img src="${iconUrl}" alt="Weather Icon" class="weather-icon">
         <h2>${data.name}</h2>
         <p>Temperature: ${Math.round(data.main.temp - 273.15)}°C</p>
         <p>Weather: ${data.weather[0].description}</p>
@@ -47,9 +49,11 @@ function displayForecastData(data) {
 
         forecastByDate[date].forEach(forecast => {
             const time = forecast.dt_txt.split(' ')[1].slice(0, 5);
+            const iconUrl = `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`;
             const forecastElement = document.createElement('div');
             forecastElement.classList.add('forecast-item');
             forecastElement.innerHTML = `
+                <img src="${iconUrl}" alt="Weather Icon" class="weather-icon">
                 <p><strong>Time:</strong> ${time}</p>
                 <p><strong>Temperature:</strong> ${Math.round(forecast.main.temp - 273.15)}°C</p>
                 <p><strong>Weather:</strong> ${forecast.weather[0].description}</p>
