@@ -1,21 +1,27 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Attach event listeners to buttons
-    document.getElementById('getWeatherBtn').addEventListener('click', fetchWeather);
-    document.getElementById('getForecastBtn').addEventListener('click', fetchForecast);
-
-    // Automatically fetch weather by location
-    fetchWeatherByLocation();
-
-    // Handle dark mode toggle
+    const settingsGear = document.getElementById('settingsGear');
+    const settingsMenu = document.getElementById('settingsMenu');
+    const closeSettings = document.getElementById('closeSettings');
     const darkModeToggle = document.getElementById('darkModeToggle');
     const body = document.body;
 
-    // Check saved preference
+    // Check saved preference for dark mode
     if (localStorage.getItem('darkMode') === 'enabled') {
         body.classList.add('dark-mode');
         darkModeToggle.checked = true;
     }
 
+    // Open settings menu when gear icon is clicked
+    settingsGear.addEventListener('click', function () {
+        settingsMenu.style.display = 'block';
+    });
+
+    // Close settings menu when "Close" button is clicked
+    closeSettings.addEventListener('click', function () {
+        settingsMenu.style.display = 'none';
+    });
+
+    // Handle dark mode toggle
     darkModeToggle.addEventListener('change', function () {
         if (darkModeToggle.checked) {
             body.classList.add('dark-mode');
@@ -25,6 +31,13 @@ document.addEventListener('DOMContentLoaded', function () {
             localStorage.setItem('darkMode', 'disabled');
         }
     });
+
+    // Attach event listeners to fetch weather data
+    document.getElementById('getWeatherBtn').addEventListener('click', fetchWeather);
+    document.getElementById('getForecastBtn').addEventListener('click', fetchForecast);
+
+    // Automatically fetch weather by location
+    fetchWeatherByLocation();
 });
 
 function showLoadingSpinner() {
