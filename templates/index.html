@@ -9,7 +9,13 @@
 <body>
     <div class="app-wrapper">
         <div class="container">
-            <h1>Weather Dashboard</h1>
+            <div class="header">
+                <h1>Weather Dashboard</h1>
+                <label class="dark-mode-toggle">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="toggle-icon"></span>
+                </label>
+            </div>
             <input type="text" id="cityInput" placeholder="Enter city name">
             <input type="text" id="countryInput" placeholder="Enter country code (optional)">
             <button id="getWeatherBtn">Get Current Weather</button>

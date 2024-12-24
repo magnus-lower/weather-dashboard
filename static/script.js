@@ -1,9 +1,30 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Attach event listeners to buttons
     document.getElementById('getWeatherBtn').addEventListener('click', fetchWeather);
     document.getElementById('getForecastBtn').addEventListener('click', fetchForecast);
 
     // Automatically fetch weather by location
     fetchWeatherByLocation();
+
+    // Handle dark mode toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const body = document.body;
+
+    // Check saved preference
+    if (localStorage.getItem('darkMode') === 'enabled') {
+        body.classList.add('dark-mode');
+        darkModeToggle.checked = true;
+    }
+
+    darkModeToggle.addEventListener('change', function () {
+        if (darkModeToggle.checked) {
+            body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', 'enabled');
+        } else {
+            body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', 'disabled');
+        }
+    });
 });
 
 function showLoadingSpinner() {
