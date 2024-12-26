@@ -10,12 +10,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let lastLat = null;
     let lastLon = null;
 
-    // Check saved preferences for dark mode and units
-    if (localStorage.getItem('darkMode') === 'enabled') {
-        body.classList.add('dark-mode');
-        darkModeToggle.checked = true;
-    }
+    // Initialize dark mode
+    initDarkMode();
 
+    // Check saved preferences for units
     if (localStorage.getItem('unit') === 'imperial') {
         unitToggle.checked = true;
     }
@@ -33,11 +31,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Handle dark mode toggle
     darkModeToggle.addEventListener('change', function () {
         if (darkModeToggle.checked) {
-            body.classList.add('dark-mode');
-            localStorage.setItem('darkMode', 'enabled');
+            setDarkMode(true);
         } else {
-            body.classList.remove('dark-mode');
-            localStorage.setItem('darkMode', 'disabled');
+            setDarkMode(false);
         }
     });
 
@@ -59,6 +55,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Automatically fetch weather by location
     fetchWeatherByLocation();
+
+    // Functions for dark mode
+    function initDarkMode() {
+        const userPreference = localStorage.getItem('darkMode');
+        const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (userPreference === 'enabled' || (userPreference === null && systemPreference)) {
+            setDarkMode(true, false);
+        } else {
+            setDarkMode(false, false);
+        }
+
+        // Listen for system preference changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (localStorage.getItem('darkMode') === null) {
+                setDarkMode(e.matches, false);
+            }
+        });
+    }
+
+    function setDarkMode(enabled, savePreference = true) {
+        if (enabled) {
+            body.classList.add('dark-mode');
+            darkModeToggle.checked = true;
+            if (savePreference) localStorage.setItem('darkMode', 'enabled');
+        } else {
+            body.classList.remove('dark-mode');
+            darkModeToggle.checked = false;
+            if (savePreference) localStorage.setItem('darkMode', 'disabled');
+        }
+    }
 
     // Generalized fetch function
     function fetchWeatherData(endpoint, queryParams) {
