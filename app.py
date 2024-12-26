@@ -28,24 +28,33 @@ if not API_KEY:
     raise ValueError("API_KEY is missing. Please set it in your .env file.")
 
 
-# Function to fetch weather data
+# Utility function to fetch and validate weather data
 def fetch_weather_data(url):
     try:
         response = requests.get(url, timeout=5)
         data = response.json()
 
-        if response.status_code == 401:
-            logger.error(f"API Key Error: {data.get('message', 'Unknown error')}")
-            return {'error': 'Invalid API key. Please check your settings.'}
-
         if response.status_code != 200:
             logger.error(f"API Error {response.status_code}: {data.get('message', 'Unknown error')}")
             return {'error': 'Failed to fetch weather data. Please try again later.'}
+
+        # Basic response validation
+        if 'weather' not in data or 'main' not in data:
+            logger.error("Invalid response structure from weather API")
+            return {'error': 'Invalid data received from the weather API.'}
 
         return data
     except requests.exceptions.RequestException as e:
         logger.error(f"Network Error: {str(e)}")
         return {'error': 'A network error occurred. Please check your connection and try again.'}
+
+
+# Utility function for custom cache key
+def make_cache_key(*args, **kwargs):
+    """
+    Generates a unique cache key based on route arguments and query parameters.
+    """
+    return str(request.args)
 
 
 # Home route
@@ -54,9 +63,9 @@ def home():
     return render_template('index.html')
 
 
-# Route to get current weather by city (with caching)
+# Route to get current weather by city (with smarter caching)
 @app.route('/weather', methods=['GET'])
-@cache.cached(query_string=True)  # Cache based on query parameters
+@cache.cached(timeout=300, key_prefix=make_cache_key)  # Custom cache key
 def get_weather():
     city = request.args.get('city')
     country = request.args.get('country', 'NO')  # Default country to Norway
@@ -71,9 +80,9 @@ def get_weather():
     return jsonify(data)
 
 
-# Route to get weather by coordinates (with caching)
+# Route to get weather by coordinates (with smarter caching)
 @app.route('/weather_by_coords', methods=['GET'])
-@cache.cached(query_string=True)  # Cache based on query parameters
+@cache.cached(timeout=300, key_prefix=make_cache_key)  # Custom cache key
 def get_weather_by_coords():
     lat = request.args.get('lat')
     lon = request.args.get('lon')
@@ -86,6 +95,17 @@ def get_weather_by_coords():
     url = f'{BASE_URL}weather?lat={lat}&lon={lon}&units={unit}&appid={API_KEY}'
     data = fetch_weather_data(url)
     return jsonify(data)
+
+
+# Route to clear the cache programmatically (optional, for development)
+@app.route('/clear_cache', methods=['POST'])
+def clear_cache():
+    """
+    Clears the cache for all routes. Useful for testing or development.
+    """
+    cache.clear()
+    logger.info("Cache cleared successfully.")
+    return jsonify({'message': 'Cache cleared successfully.'})
 
 
 # Error handler for uncaught exceptions
