@@ -24,8 +24,8 @@
             <!-- Input Fields and Buttons -->
             <input type="text" id="cityInput" placeholder="Enter city name">
             <input type="text" id="countryInput" placeholder="Enter country code (optional)">
-            <button id="getWeatherBtn">Get Current Weather</button>
-            <button id="getForecastBtn">Get 5-Day Forecast</button>
+            <button id="getWeatherBtn" onclick="fetchWeather()">Get Current Weather</button>
+            <button id="getForecastBtn" onclick="fetchForecast()">Get 5-Day Forecast</button>
 
             <!-- Weather Data Section -->
             <div id="weatherData"></div>
@@ -37,40 +37,39 @@
         </div>
 
         <!-- Settings Menu -->
-<div class="settings-menu" id="settingsMenu">
-    <h3>Settings</h3>
+        <div class="settings-menu" id="settingsMenu">
+            <h3>Settings</h3>
 
-    <!-- Dark Mode Toggle -->
-    <div class="setting-item">
-        <div class="setting-icon">
-            <img src="https://img.icons8.com/color/48/000000/sun.png" alt="Sun Icon">
-        </div>
-        <div class="setting-details">
-            <label class="switch">
-                <input type="checkbox" id="darkModeToggle">
-                <span class="slider"></span>
-            </label>
-            <p>Light / Dark Mode</p>
-        </div>
-    </div>
+            <!-- Dark Mode Toggle -->
+            <div class="setting-item">
+                <div class="setting-icon">
+                    <img src="https://img.icons8.com/color/48/000000/sun.png" alt="Sun Icon">
+                </div>
+                <div class="setting-details">
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <p>Light / Dark Mode</p>
+                </div>
+            </div>
 
-    <!-- Unit Toggle (Celsius/Fahrenheit & Wind Speed) -->
-    <div class="setting-item">
-        <div class="setting-icon">
-            <img src="https://img.icons8.com/ios-filled/50/000000/temperature.png" alt="Temperature Icon">
-        </div>
-        <div class="setting-details">
-            <label class="switch">
-                <input type="checkbox" id="unitToggle">
-                <span class="slider"></span>
-            </label>
-            <p>°C / °F and m/s / mph</p>
-        </div>
-    </div>
+            <!-- Unit Toggle (Celsius/Fahrenheit & Wind Speed) -->
+            <div class="setting-item">
+                <div class="setting-icon">
+                    <img src="https://img.icons8.com/ios-filled/50/000000/temperature.png" alt="Temperature Icon">
+                </div>
+                <div class="setting-details">
+                    <label class="switch">
+                        <input type="checkbox" id="unitToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <p>°C / °F and m/s / mph</p>
+                </div>
+            </div>
 
-    <button id="closeSettings">Close</button>
-</div>
-
+            <button id="closeSettings">Close</button>
+        </div>
     </div>
 
     <!-- External JavaScript -->
