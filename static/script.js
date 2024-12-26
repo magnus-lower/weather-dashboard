@@ -60,32 +60,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Automatically fetch weather by location
     fetchWeatherByLocation();
 
-    function fetchWeatherByLocation(lat = null, lon = null) {
-        const unit = localStorage.getItem('unit') || 'metric'; // Default to metric units
+    // Generalized fetch function
+    function fetchWeatherData(endpoint, queryParams) {
+        const queryString = new URLSearchParams(queryParams).toString();
+        showLoadingSpinner();
 
-        if (lat !== null && lon !== null) {
-            fetchWeatherDataByCoords(lat, lon, unit);
-        } else if (navigator.geolocation) {
-            showLoadingSpinner();
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    lastLat = position.coords.latitude;
-                    lastLon = position.coords.longitude;
-                    fetchWeatherDataByCoords(lastLat, lastLon, unit);
-                },
-                (error) => {
-                    hideLoadingSpinner();
-                    alert('Unable to retrieve your location.');
-                    console.error(error);
-                }
-            );
-        } else {
-            alert('Geolocation is not supported by this browser.');
-        }
-    }
-
-    function fetchWeatherDataByCoords(lat, lon, unit) {
-        fetch(`/weather_by_coords?lat=${lat}&lon=${lon}&unit=${unit}`)
+        fetch(`${endpoint}?${queryString}`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -107,61 +87,55 @@ document.addEventListener('DOMContentLoaded', function () {
     function fetchWeather() {
         const city = document.getElementById('cityInput').value;
         const country = document.getElementById('countryInput').value || 'NO';
-        const unit = localStorage.getItem('unit') || 'metric'; // Default to metric units
+        const unit = localStorage.getItem('unit') || 'metric';
 
         if (!city) {
             alert('Please enter a city name.');
             return;
         }
 
-        showLoadingSpinner();
-        fetch(`/weather?city=${city}&country=${country}&unit=${unit}`)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then((data) => {
-                hideLoadingSpinner();
-                if (data.error) {
-                    clearWeatherData();
-                    alert(data.error);
-                } else {
-                    displayWeatherData(data);
-                }
-            })
-            .catch(handleFetchError);
+        fetchWeatherData('/weather', { city, country, unit });
     }
 
     function fetchForecast() {
         const city = document.getElementById('cityInput').value;
         const country = document.getElementById('countryInput').value || 'NO';
-        const unit = localStorage.getItem('unit') || 'metric'; // Default to metric units
+        const unit = localStorage.getItem('unit') || 'metric';
 
         if (!city) {
             alert('Please enter a city name.');
             return;
         }
 
-        showLoadingSpinner();
-        fetch(`/forecast?city=${city}&country=${country}&unit=${unit}`)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+        fetchWeatherData('/forecast', { city, country, unit });
+    }
+
+    function fetchWeatherByLocation(lat = null, lon = null) {
+        const unit = localStorage.getItem('unit') || 'metric';
+
+        if (lat !== null && lon !== null) {
+            fetchWeatherData('/weather_by_coords', { lat, lon, unit });
+        } else if (navigator.geolocation) {
+            showLoadingSpinner();
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    lastLat = position.coords.latitude;
+                    lastLon = position.coords.longitude;
+                    fetchWeatherData('/weather_by_coords', {
+                        lat: lastLat,
+                        lon: lastLon,
+                        unit,
+                    });
+                },
+                (error) => {
+                    hideLoadingSpinner();
+                    alert('Unable to retrieve your location.');
+                    console.error(error);
                 }
-                return response.json();
-            })
-            .then((data) => {
-                hideLoadingSpinner();
-                if (data.error) {
-                    clearWeatherData();
-                    alert(data.error);
-                } else {
-                    displayWeatherData(data);
-                }
-            })
-            .catch(handleFetchError);
+            );
+        } else {
+            alert('Geolocation is not supported by this browser.');
+        }
     }
 
     function displayWeatherData(data) {
