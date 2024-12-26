@@ -18,24 +18,27 @@ cache = Cache(app)
 API_KEY = os.getenv('API_KEY')
 BASE_URL = 'https://api.openweathermap.org/data/2.5/'
 
+# Validate API Key
+if not API_KEY:
+    raise ValueError("API_KEY is missing. Please set it in your .env file.")
 
 # Function to fetch weather data
 def fetch_weather_data(url):
     try:
         response = requests.get(url, timeout=5)
         data = response.json()
+        if response.status_code == 401:
+            return {'error': 'Invalid API key. Please check your API_KEY in the environment variables.'}
         if response.status_code != 200:
             return {'error': data.get('message', 'Error fetching weather data')}
         return data
     except requests.exceptions.RequestException as e:
         return {'error': f'Network error: {str(e)}'}
 
-
 # Home route
 @app.route('/')
 def home():
     return render_template('index.html')
-
 
 # Route to get current weather by city (with caching)
 @app.route('/weather', methods=['GET'])
@@ -51,7 +54,6 @@ def get_weather():
     data = fetch_weather_data(url)
     return jsonify(data)
 
-
 # Route to get weather by coordinates (with caching)
 @app.route('/weather_by_coords', methods=['GET'])
 @cache.cached(query_string=True)  # Cache based on query parameters
@@ -66,7 +68,6 @@ def get_weather_by_coords():
     url = f'{BASE_URL}weather?lat={lat}&lon={lon}&units={unit}&appid={API_KEY}'
     data = fetch_weather_data(url)
     return jsonify(data)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
