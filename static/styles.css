@@ -1,38 +1,41 @@
 /* General body styles */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background-size: cover;
+    background: linear-gradient(to bottom, #87CEFA, #f4f4f4) no-repeat fixed center;
     color: #333;
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    width: 100vw;
+    min-height: 100vh; /* Ensures the background covers the full viewport */
+    overflow-x: hidden;
     transition: background-color 0.3s, color 0.3s;
 }
 
 /* Dark mode */
 body.dark-mode {
-    background-color: #121212;
+    background: linear-gradient(to bottom, #121212, #1e1e1e);
     color: #e0e0e0;
 }
 
-/* Container styles */
+/* Main container */
 .container {
     max-width: 600px;
     width: 90%;
     padding: 20px;
     text-align: center;
-    background-color: #fff;
+    background: rgba(255, 255, 255, 0.95); /* Slightly more transparent */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    border-radius: 10px;
     transition: background-color 0.3s, color 0.3s;
     position: relative;
 }
 
 body.dark-mode .container {
-    background-color: #1e1e1e;
+    background: rgba(30, 30, 30, 0.95);
     color: #e0e0e0;
 }
 
@@ -46,7 +49,7 @@ body.dark-mode .container {
 
 /* Settings gear icon */
 .settings-icon svg {
-    width: 30px;
+    width: 60px;
     height: 30px;
     cursor: pointer;
     transition: transform 0.3s ease-in-out;
@@ -56,10 +59,10 @@ body.dark-mode .container {
     transform: rotate(30deg);
 }
 
-/* Input and button styles */
+/* Input fields and buttons */
 input,
 button {
-    padding: 10px;
+    padding: 12px;
     margin: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -94,8 +97,7 @@ body.dark-mode button {
 
 /* Keyframes for bounce animation */
 @keyframes weather-bounce {
-    0%,
-    100% {
+    0%, 100% {
         transform: translateY(0);
     }
     50% {
@@ -170,16 +172,6 @@ body.dark-mode #weatherData div {
 body.dark-mode .settings-menu {
     background-color: #1e1e1e;
     color: #e0e0e0;
-}
-
-.settings-menu h3 {
-    font-size: 1.5em;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-body.dark-mode .settings-menu h3 {
-    color: #fff;
 }
 
 /* Setting Item */
@@ -263,4 +255,27 @@ input:checked + .slider:before {
 
 .settings-menu button:hover {
     background-color: #0056b3;
+}
+
+/* 🌍 Mobile Responsive Styling */
+@media (max-width: 600px) {
+    body {
+        background-size: cover;
+        background-attachment: fixed;
+        min-height: 105vh; /* Ensures background fully covers the viewport */
+        overflow-x: hidden; /* Prevents horizontal scroll issues */
+    }
+
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    button {
+        width: 95%;
+    }
+
+    .settings-menu {
+        width: 80%;
+    }
 }
