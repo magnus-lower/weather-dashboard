@@ -213,30 +213,30 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function fetchWeatherByLocation(lat = null, lon = null) {
-        const unit = localStorage.getItem('unit') || 'metric';
+    const unit = localStorage.getItem('unit') || 'metric';
 
-        if (lat !== null && lon !== null) {
-            console.log('Fetching weather for location:', lat, lon);
-            reverseGeocode(lat, lon, unit);
-        } else if (navigator.geolocation) {
-            showLoadingSpinner();
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    lastLat = position.coords.latitude;
-                    lastLon = position.coords.longitude;
-                    console.log('Fetched geolocation:', lastLat, lastLon);
-                    reverseGeocode(lastLat, lastLon, unit);
-                },
-                (error) => {
-                    hideLoadingSpinner();
-                    alert('Unable to retrieve your location.');
-                    console.error(error);
-                }
-            );
-        } else {
-            alert('Geolocation is not supported by this browser.');
-        }
+    if (lat !== null && lon !== null) {
+        console.log('Fetching weather for location:', lat, lon);
+        reverseGeocode(lat, lon, unit);
+    } else if (navigator.geolocation) {
+        showLoadingSpinner();
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                lastLat = position.coords.latitude;
+                lastLon = position.coords.longitude;
+                console.log('Fetched geolocation:', lastLat, lastLon);
+                reverseGeocode(lastLat, lastLon, unit);
+            },
+            (error) => {
+                hideLoadingSpinner();
+                alert('Unable to retrieve your location. Please check your location settings.');
+                console.error(error);
+            }
+        );
+    } else {
+        alert('Geolocation is not supported by this browser.');
     }
+}
 
     function reverseGeocode(lat, lon, unit) {
     const apiKey = 'b40f58d271f8c91caba8162e6f87689d';
