@@ -212,21 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchWeatherData('/weather', { city, unit });
     }
 
-    // Fetch 5-day forecast by city
-    function fetchForecast() {
-        const city = document.getElementById('cityInput').value.trim();
-        const unit = localStorage.getItem('unit') || 'metric';
-
-        if (!city) {
-            alert('Please enter a city name.');
-            return;
-        }
-
-        console.log('Fetching forecast for city:', city);
-
-        fetchWeatherData('/forecast', { city, unit });
-    }
-
 
     // Fetch weather by location
     function fetchWeatherByLocation(lat = null, lon = null) {
@@ -260,57 +245,60 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function fetchCitySuggestions(query) {
-        const apiKey = 'b40f58d271f8c91caba8162e6f87689d';
-        const endpoint = `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=10&appid=${apiKey}`;
+    const apiKey = 'b40f58d271f8c91caba8162e6f87689d';
+    const endpoint = `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=10&appid=${apiKey}`;
 
-        fetch(endpoint)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch city suggestions');
-                }
-                return response.json();
-            })
-            .then(data => {
-                const suggestionsList = document.getElementById('citySuggestions');
-                suggestionsList.innerHTML = ''; // Clear previous suggestions
+    fetch(endpoint)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch city suggestions');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const suggestionsList = document.getElementById('citySuggestions');
+            suggestionsList.innerHTML = ''; // Clear previous suggestions
 
-                if (data.length > 0) {
-                    data.forEach(city => {
-                        const state = city.state ? `, ${city.state}` : '';
-                        const cityName = `${city.name}${state}, ${city.country}`;
+            if (data.length > 0) {
+                data.forEach(city => {
+                    const state = city.state ? `, ${city.state}` : '';
+                    const cityName = `${city.name}${state}, ${city.country}`;
 
-                        const li = document.createElement('li');
-                        li.textContent = cityName;
-                        li.style.cursor = 'pointer';
-
-                        // Star icon
-                        const star = document.createElement('span');
-                        star.innerHTML = '&#9733;'; // Star character
-                        star.style.cursor = 'pointer';
-                        star.style.marginLeft = '10px';
-                        star.title = 'Add to Favorites';
-                        star.addEventListener('click', (e) => {
-                            e.stopPropagation(); // Prevent clicking suggestion
-                            addToFavorites(city);
-                        });
-
-                        li.appendChild(star);
-                        li.addEventListener('click', () => {
-                            document.getElementById('cityInput').value = cityName;
-                            suggestionsList.innerHTML = ''; // Hide suggestions after selection
-                        });
-
-                        suggestionsList.appendChild(li);
-                    });
-                } else {
                     const li = document.createElement('li');
-                    li.textContent = `No matching cities found for "${query}"`;
+                    li.textContent = cityName;
+                    li.style.cursor = 'pointer';
+
+                    // Star icon for favorites
+                    const star = document.createElement('span');
+                    star.innerHTML = '&#9733;'; // Star character
+                    star.style.cursor = 'pointer';
+                    star.style.marginLeft = '10px';
+                    star.title = 'Add to Favorites';
+                    star.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent clicking suggestion
+                        addToFavorites(city);
+                    });
+
+                    li.appendChild(star);
+
+                    // Auto-fetch weather on selection
+                    li.addEventListener('click', () => {
+                        document.getElementById('cityInput').value = cityName;
+                        suggestionsList.innerHTML = ''; // Hide suggestions
+                        fetchWeatherByCity(cityName); // Auto-fetch weather
+                    });
+
                     suggestionsList.appendChild(li);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching city suggestions:', error);
-            });
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = `No matching cities found for "${query}"`;
+                suggestionsList.appendChild(li);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching city suggestions:', error);
+        });
     }
 
     function fetchWeatherData(endpoint, queryParams) {
