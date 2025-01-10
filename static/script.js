@@ -197,7 +197,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Fetch weather by city
     function fetchWeather() {
         const city = document.getElementById('cityInput').value.trim();
-        const country = document.getElementById('countryInput').value.trim() || 'NO';
         const unit = localStorage.getItem('unit') || 'metric';
 
         if (!city) {
@@ -205,19 +204,17 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        console.log('Fetching weather for city:', city, country);
+        console.log('Fetching weather for city:', city);
 
-        // Update the last searched city and country
+        // Update the last searched city
         lastCity = city;
-        lastCountry = country;
 
-        fetchWeatherData('/weather', {city, country, unit});
+        fetchWeatherData('/weather', { city, unit });
     }
 
     // Fetch 5-day forecast by city
     function fetchForecast() {
         const city = document.getElementById('cityInput').value.trim();
-        const country = document.getElementById('countryInput').value.trim() || 'NO';
         const unit = localStorage.getItem('unit') || 'metric';
 
         if (!city) {
@@ -225,10 +222,11 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        console.log('Fetching forecast for city:', city, country);
+        console.log('Fetching forecast for city:', city);
 
-        fetchWeatherData('/forecast', {city, country, unit});
+        fetchWeatherData('/forecast', { city, unit });
     }
+
 
     // Fetch weather by location
     function fetchWeatherByLocation(lat = null, lon = null) {
