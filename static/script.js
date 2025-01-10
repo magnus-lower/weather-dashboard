@@ -212,14 +212,12 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchWeatherData('/weather', { city, unit });
     }
 
-
-    // Fetch weather by location
     function fetchWeatherByLocation(lat = null, lon = null) {
         const unit = localStorage.getItem('unit') || 'metric';
 
         if (lat !== null && lon !== null) {
             console.log('Fetching weather for location:', lat, lon);
-            fetchWeatherData('/weather_by_coords', {lat, lon, unit});
+            reverseGeocode(lat, lon, unit);
         } else if (navigator.geolocation) {
             showLoadingSpinner();
             navigator.geolocation.getCurrentPosition(
@@ -227,11 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     lastLat = position.coords.latitude;
                     lastLon = position.coords.longitude;
                     console.log('Fetched geolocation:', lastLat, lastLon);
-                    fetchWeatherData('/weather_by_coords', {
-                        lat: lastLat,
-                        lon: lastLon,
-                        unit,
-                    });
+                    reverseGeocode(lastLat, lastLon, unit);
                 },
                 (error) => {
                     hideLoadingSpinner();
@@ -242,6 +236,36 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             alert('Geolocation is not supported by this browser.');
         }
+    }
+
+    function reverseGeocode(lat, lon, unit) {
+    const apiKey = 'b40f58d271f8c91caba8162e6f87689d';
+    const endpoint = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
+
+    fetch(endpoint)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                const city = data[0].name;
+                const country = data[0].country;
+
+                console.log(`Reverse Geocoded City: ${city}, Country: ${country}`);
+
+                lastCity = city;
+                lastCountry = country;
+
+                // Update input field
+                document.getElementById('cityInput').value = `${city}, ${country}`;
+
+                // Fetch weather using the city name
+                fetchWeatherData('/weather', { city, country, unit });
+            } else {
+                console.error("Reverse geocoding failed. No results found.");
+            }
+        })
+        .catch(error => {
+            console.error("Error in reverse geocoding:", error);
+        });
     }
 
     function fetchCitySuggestions(query) {
