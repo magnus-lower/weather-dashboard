@@ -343,6 +343,116 @@ input:checked + .slider:before {
     margin-left: 15px;
 }
 
+.forecast-container {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .forecast-container {
+    background: rgba(30, 30, 30, 0.95);
+    color: #e0e0e0;
+}
+
+.forecast-container h3 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* Forecast Cards Layout */
+.forecast-cards {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+/* Individual Forecast Card */
+.forecast-card {
+    flex: 0 0 auto;
+    width: 110px;
+    padding: 12px;
+    text-align: center;
+    background: rgba(248, 248, 248, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.forecast-card:hover {
+    transform: translateY(-5px);
+}
+
+body.dark-mode .forecast-card {
+    background: rgba(40, 40, 40, 0.9);
+}
+
+.forecast-date {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+
+.forecast-icon {
+    width: 60px;
+    height: 60px;
+    margin: 5px auto;
+}
+
+.forecast-temps {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.temp-max {
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.temp-min {
+    color: #3498db;
+}
+
+body.dark-mode .temp-max {
+    color: #ff6b6b;
+}
+
+body.dark-mode .temp-min {
+    color: #5dade2;
+}
+
+.forecast-condition {
+    font-size: 0.9em;
+    color: #555;
+}
+
+body.dark-mode .forecast-condition {
+    color: #bbb;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .forecast-card {
+        width: 90px;
+        padding: 10px;
+    }
+
+    .forecast-date {
+        font-size: 0.8em;
+    }
+
+    .forecast-icon {
+        width: 50px;
+        height: 50px;
+    }
+}
+
 /* 🌍 Mobile Responsive Styling */
 @media (max-width: 600px) {
     body {

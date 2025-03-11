@@ -107,6 +107,22 @@ def clear_cache():
     return jsonify({'message': 'Cache cleared successfully.'})
 
 
+@app.route('/forecast', methods=['GET'])
+@cache.cached(timeout=300, key_prefix=make_cache_key)
+def get_forecast():
+    city = request.args.get('city')
+    country = request.args.get('country', 'NO')
+    unit = request.args.get('unit', 'metric')
+
+    if not city:
+        logger.warning("City parameter is missing in forecast request.")
+        return jsonify({'error': 'City parameter is required'}), 400
+
+    url = f'{BASE_URL}forecast?q={city},{country}&units={unit}&appid={API_KEY}'
+    data = fetch_weather_data(url)
+    return jsonify(data)
+
+
 # Error handler for uncaught exceptions
 @app.errorhandler(Exception)
 def handle_exception(e):
