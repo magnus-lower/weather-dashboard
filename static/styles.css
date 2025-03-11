@@ -1,18 +1,29 @@
 /* General body styles */
+:root {
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --light-bg: #f4f4f4;
+    --dark-bg: #121212;
+    --light-text: #333;
+    --dark-text: #e0e0e0;
+    --box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.3s;
+}
+
 body {
     font-family: Arial, sans-serif;
     background-size: cover;
-    background: linear-gradient(to bottom, #87CEFA, #f4f4f4) no-repeat fixed center;
-    color: #333;
+    background: linear-gradient(to bottom, #87CEFA, var(--light-bg)) no-repeat fixed center;
+    color: var(--light-text);
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100vw;
-    min-height: 100vh; /* Ensures the background covers the full viewport */
+    min-height: 100vh;
     overflow-x: hidden;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
 /* Dark mode */
@@ -352,5 +363,23 @@ input:checked + .slider:before {
 
     .settings-menu {
         width: 80%;
+    }
+}
+
+/* Add additional breakpoints */
+@media (max-width: 400px) {
+    .container {
+        width: 98%;
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+    .container {
+        max-width: 80%;
     }
 }

@@ -5,8 +5,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeSettings = document.getElementById('closeSettings');
     const darkModeToggle = document.getElementById('darkModeToggle');
     const unitToggle = document.getElementById('unitToggle');
-    const getWeatherBtn = document.getElementById('getWeatherBtn');
-    const getForecastBtn = document.getElementById('getForecastBtn');
     const body = document.body;
 
     // Variables to store the last fetched location and city
@@ -46,8 +44,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         unitToggle.addEventListener('change', handleUnitToggle);
 
-        getWeatherBtn.addEventListener('click', fetchWeather);
-        getForecastBtn.addEventListener('click', fetchForecast);
+        // Add click event for the city input to search weather
+        document.getElementById('cityInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                fetchWeather();
+            }
+        });
     }
 
 
@@ -70,21 +72,18 @@ document.addEventListener('DOMContentLoaded', function () {
     function showFavorites() {
         const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-        // Check if container already exists to prevent duplicates
-        let existingContainer = document.getElementById('favoritesContainer');
-        if (existingContainer) {
-            existingContainer.remove();
-        }
-
         if (favorites.length === 0) {
             alert('No favorites added yet.');
             return;
         }
 
+        // Remove existing container
+        document.getElementById('favoritesContainer')?.remove();
+
+        // Create new container
         const favoritesContainer = document.createElement('div');
         favoritesContainer.id = 'favoritesContainer';
         favoritesContainer.classList.add('favorites-container');
-
         favoritesContainer.innerHTML = '<h3>Your Favorites:</h3>';
 
         favorites.forEach(city => {
@@ -104,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             cityRow.addEventListener('click', () => {
                 fetchWeatherByCity(city);
+                favoritesContainer.remove();
             });
 
             // Remove button
@@ -117,6 +117,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.stopPropagation(); // Prevent clicking city row
                 removeFromFavorites(city);
                 cityRow.remove();
+                if (favoritesContainer.querySelectorAll('div').length === 0) {
+                    favoritesContainer.remove();
+                }
             });
 
             cityRow.appendChild(removeBtn);
@@ -137,49 +140,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         favoritesContainer.appendChild(closeButton);
         document.body.appendChild(favoritesContainer);
-    }
-
-
-    function createFavoritesContainer(favorites) {
-        const container = document.createElement('div');
-        container.innerHTML = '<h3>Your Favorites:</h3>';
-        styleFavoritesContainer(container);
-
-        favorites.forEach(city => {
-            const cityRow = createCityRow(city);
-            container.appendChild(cityRow);
-        });
-
-        const closeButton = createCloseButton(container);
-        container.appendChild(closeButton);
-        return container;
-    }
-
-    function createCityRow(city) {
-        const cityRow = document.createElement('div');
-        cityRow.style = getRowStyles();
-        cityRow.textContent = `⭐ ${city}`;
-        cityRow.addEventListener('click', () => fetchWeatherByCity(city));
-
-        const removeBtn = document.createElement('span');
-        removeBtn.textContent = '❌';
-        removeBtn.style = getRemoveButtonStyles();
-        removeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            removeFromFavorites(city);
-            cityRow.remove();
-        });
-
-        cityRow.appendChild(removeBtn);
-        return cityRow;
-    }
-
-    function createCloseButton(container) {
-        const closeButton = document.createElement('button');
-        closeButton.textContent = 'Close';
-        closeButton.style = getCloseButtonStyles();
-        closeButton.addEventListener('click', () => container.remove());
-        return closeButton;
     }
 
     function refreshWeatherData() {
@@ -213,116 +173,139 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function fetchWeatherByLocation(lat = null, lon = null) {
-    const unit = localStorage.getItem('unit') || 'metric';
+        const unit = localStorage.getItem('unit') || 'metric';
 
-    if (lat !== null && lon !== null) {
-        console.log('Fetching weather for location:', lat, lon);
-        reverseGeocode(lat, lon, unit);
-    } else if (navigator.geolocation) {
-        showLoadingSpinner();
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                lastLat = position.coords.latitude;
-                lastLon = position.coords.longitude;
-                console.log('Fetched geolocation:', lastLat, lastLon);
-                reverseGeocode(lastLat, lastLon, unit);
-            },
-            (error) => {
-                hideLoadingSpinner();
-                alert('Unable to retrieve your location. Please check your location settings.');
-                console.error(error);
-            }
-        );
-    } else {
-        alert('Geolocation is not supported by this browser.');
+        if (lat !== null && lon !== null) {
+            console.log('Fetching weather for location:', lat, lon);
+            reverseGeocode(lat, lon, unit);
+        } else if (navigator.geolocation) {
+            showLoadingSpinner();
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    lastLat = position.coords.latitude;
+                    lastLon = position.coords.longitude;
+                    console.log('Fetched geolocation:', lastLat, lastLon);
+                    reverseGeocode(lastLat, lastLon, unit);
+                },
+                (error) => {
+                    hideLoadingSpinner();
+                    alert('Unable to retrieve your location. Please check your location settings.');
+                    console.error(error);
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by this browser.');
+        }
     }
-}
 
     function reverseGeocode(lat, lon, unit) {
-    const apiKey = 'b40f58d271f8c91caba8162e6f87689d';
-    const endpoint = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
+        const apiKey = 'b40f58d271f8c91caba8162e6f87689d'; // Should be moved to backend
+        const endpoint = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
 
-    fetch(endpoint)
-        .then(response => response.json())
-        .then(data => {
-            if (data.length > 0) {
-                const city = data[0].name;
-                const country = data[0].country;
+        fetch(endpoint)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.length > 0) {
+                    const city = data[0].name;
+                    const country = data[0].country;
 
-                console.log(`Reverse Geocoded City: ${city}, Country: ${country}`);
+                    console.log(`Reverse Geocoded City: ${city}, Country: ${country}`);
 
-                lastCity = city;
-                lastCountry = country;
+                    lastCity = city;
+                    lastCountry = country;
 
-                // Update input field
-                document.getElementById('cityInput').value = `${city}, ${country}`;
+                    // Update input field
+                    document.getElementById('cityInput').value = `${city}, ${country}`;
 
-                // Fetch weather using the city name
-                fetchWeatherData('/weather', { city, country, unit });
-            } else {
-                console.error("Reverse geocoding failed. No results found.");
-            }
-        })
-        .catch(error => {
-            console.error("Error in reverse geocoding:", error);
-        });
+                    // Fetch weather using the city name
+                    fetchWeatherData('/weather', { city, country, unit });
+                } else {
+                    console.error("Reverse geocoding failed. No results found.");
+                    hideLoadingSpinner();
+                    alert('Could not determine your location. Please enter a city name.');
+                }
+            })
+            .catch(error => {
+                console.error("Error in reverse geocoding:", error);
+                hideLoadingSpinner();
+                alert('Error determining your location. Please enter a city name.');
+            });
     }
 
     function fetchCitySuggestions(query) {
-    const apiKey = 'b40f58d271f8c91caba8162e6f87689d';
-    const endpoint = `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=10&appid=${apiKey}`;
+        // Sanitize input
+        query = query.replace(/[^\w\s,-]/gi, '').trim();
 
-    fetch(endpoint)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch city suggestions');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const suggestionsList = document.getElementById('citySuggestions');
-            suggestionsList.innerHTML = ''; // Clear previous suggestions
+        if (!query) return;
 
-            if (data.length > 0) {
-                data.forEach(city => {
-                    const state = city.state ? `, ${city.state}` : '';
-                    const cityName = `${city.name}${state}, ${city.country}`;
+        const apiKey = 'b40f58d271f8c91caba8162e6f87689d'; // Should be moved to backend
+        // Use template literals consistently
+        const endpoint = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=10&appid=${apiKey}`;
 
+        // Add request throttling
+        if (this.lastRequestTime && Date.now() - this.lastRequestTime < 500) {
+            clearTimeout(this.throttleTimeout);
+            this.throttleTimeout = setTimeout(() => fetchCitySuggestions(query), 500);
+            return;
+        }
+        this.lastRequestTime = Date.now();
+
+        fetch(endpoint)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch city suggestions');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const suggestionsList = document.getElementById('citySuggestions');
+                suggestionsList.innerHTML = ''; // Clear previous suggestions
+
+                if (data.length > 0) {
+                    data.forEach(city => {
+                        const state = city.state ? `, ${city.state}` : '';
+                        const cityName = `${city.name}${state}, ${city.country}`;
+
+                        const li = document.createElement('li');
+                        li.textContent = cityName;
+                        li.style.cursor = 'pointer';
+
+                        // Star icon for favorites
+                        const star = document.createElement('span');
+                        star.innerHTML = '&#9733;'; // Star character
+                        star.style.cursor = 'pointer';
+                        star.style.marginLeft = '10px';
+                        star.title = 'Add to Favorites';
+                        star.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent clicking suggestion
+                            addToFavorites(city);
+                        });
+
+                        li.appendChild(star);
+
+                        // Auto-fetch weather on selection
+                        li.addEventListener('click', () => {
+                            document.getElementById('cityInput').value = cityName;
+                            suggestionsList.innerHTML = ''; // Hide suggestions
+                            fetchWeatherByCity(cityName); // Auto-fetch weather
+                        });
+
+                        suggestionsList.appendChild(li);
+                    });
+                } else {
                     const li = document.createElement('li');
-                    li.textContent = cityName;
-                    li.style.cursor = 'pointer';
-
-                    // Star icon for favorites
-                    const star = document.createElement('span');
-                    star.innerHTML = '&#9733;'; // Star character
-                    star.style.cursor = 'pointer';
-                    star.style.marginLeft = '10px';
-                    star.title = 'Add to Favorites';
-                    star.addEventListener('click', (e) => {
-                        e.stopPropagation(); // Prevent clicking suggestion
-                        addToFavorites(city);
-                    });
-
-                    li.appendChild(star);
-
-                    // Auto-fetch weather on selection
-                    li.addEventListener('click', () => {
-                        document.getElementById('cityInput').value = cityName;
-                        suggestionsList.innerHTML = ''; // Hide suggestions
-                        fetchWeatherByCity(cityName); // Auto-fetch weather
-                    });
-
+                    li.textContent = `No matching cities found for "${query}"`;
                     suggestionsList.appendChild(li);
-                });
-            } else {
-                const li = document.createElement('li');
-                li.textContent = `No matching cities found for "${query}"`;
-                suggestionsList.appendChild(li);
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching city suggestions:', error);
-        });
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching city suggestions:', error);
+            });
     }
 
     function fetchWeatherData(endpoint, queryParams) {
@@ -345,7 +328,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     displayWeatherData(data);
                 }
             })
-            .catch(handleFetchError);
+            .catch(error => {
+                hideLoadingSpinner();
+                clearWeatherData();
+                alert('There was an error fetching the weather data. Please try again later.');
+                console.error(error);
+            });
     }
 
     // === Utility functions ===
@@ -399,13 +387,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Update the background based on the main weather condition
         updateBackground(data.weather[0].main.toLowerCase());
-    }
-
-    function handleFetchError(error) {
-        hideLoadingSpinner();
-        clearWeatherData();
-        alert('There was an error fetching the weather data. Please try again later.');
-        console.error(error);
     }
 
     function showLoadingSpinner() {
@@ -500,4 +481,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
         fetchWeatherData('/weather', {city: cityName, country, unit});
     }
-})
+});

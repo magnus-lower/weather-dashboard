@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, render_template, request, jsonify
 import requests
 from flask_caching import Cache
@@ -21,32 +23,27 @@ logger = logging.getLogger(__name__)
 
 # API Key and Base URL
 API_KEY = os.getenv('API_KEY')
-BASE_URL = 'https://api.openweathermap.org/data/2.5/'
-
-# Validate API Key
 if not API_KEY:
+    logger.critical("API_KEY missing from environment variables")
     raise ValueError("API_KEY is missing. Please set it in your .env file.")
+BASE_URL = 'https://api.openweathermap.org/data/2.5/'
 
 
 # Utility function to fetch and validate weather data
 def fetch_weather_data(url):
     try:
         response = requests.get(url, timeout=5)
-        data = response.json()
-
-        if response.status_code != 200:
-            logger.error(f"API Error {response.status_code}: {data.get('message', 'Unknown error')}")
-            return {'error': 'Failed to fetch weather data. Please try again later.'}
-
-        # Basic response validation
-        if 'weather' not in data or 'main' not in data:
-            logger.error("Invalid response structure from weather API")
-            return {'error': 'Invalid data received from the weather API.'}
-
-        return data
+        response.raise_for_status()  # Raise exception for HTTP errors
+        return response.json()
+    except requests.exceptions.Timeout:
+        logger.error("Request timed out")
+        return {'error': 'The request timed out. Please try again later.'}
     except requests.exceptions.RequestException as e:
         logger.error(f"Network Error: {str(e)}")
         return {'error': 'A network error occurred. Please check your connection and try again.'}
+    except requests.exceptions.JSONDecodeError:
+        logger.error("Invalid JSON response")
+        return {'error': 'Invalid response format from the weather API.'}
 
 
 # Utility function for custom cache key
@@ -54,7 +51,9 @@ def make_cache_key(*args, **kwargs):
     """
     Generates a unique cache key based on route arguments and query parameters.
     """
-    return str(request.args)
+    # Add timestamp-based expiration for rapidly changing weather
+    current_hour = datetime.now().hour
+    return f"{str(request.args)}:{current_hour}"
 
 
 # Home route
