@@ -6,34 +6,35 @@
     --success-color: #059669;
     --danger-color: #dc2626;
     --warning-color: #d97706;
-    --light-bg: #f8fafc;
-    --dark-bg: #0f172a;
-    --card-bg: #ffffff;
-    --card-bg-dark: #1e293b;
+    --light-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --dark-bg: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --card-bg-dark: rgba(30, 41, 59, 0.95);
     --light-text: #334155;
     --dark-text: #f1f5f9;
-    --border-color: #e2e8f0;
-    --border-color-dark: #475569;
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --transition: all 0.2s ease-in-out;
-    --border-radius: 8px;
-    --border-radius-sm: 4px;
+    --border-color: rgba(226, 232, 240, 0.8);
+    --border-color-dark: rgba(71, 85, 105, 0.8);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --border-radius: 12px;
+    --border-radius-sm: 6px;
 }
 
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    background: var(--light-bg);
-    color: var(--light-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 16px;
+    /* Endre fra gradient til en værbasert bakgrunn som standard */
+    background: linear-gradient(to bottom, #87CEFA, #f4f4f4); /* Clear sky som standard */
     min-height: 100vh;
-    line-height: 1.5;
-    transition: var(--transition);
+    transition: background 0.5s ease; /* Smooth overgang når været endres */
 }
 
 body.dark-mode {
@@ -44,8 +45,10 @@ body.dark-mode {
 .app-wrapper {
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 40px);
+    align-items: flex-start;
+    min-height: calc(100vh - 32px);
+    padding-top: 32px;
+    /* Fjern bakgrunnsfarge her siden body håndterer det */
 }
 
 .container {
@@ -53,6 +56,7 @@ body.dark-mode {
     width: 100%;
     padding: 32px;
     background: var(--card-bg);
+    backdrop-filter: blur(20px);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-lg);
     border-radius: var(--border-radius);
@@ -69,8 +73,8 @@ body.dark-mode .container {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 32px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
 }
 
 body.dark-mode .header {
@@ -79,15 +83,18 @@ body.dark-mode .header {
 
 .header h1 {
     margin: 0;
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--primary-color);
+    font-size: 2.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .favorites-icon {
-    padding: 8px;
-    border-radius: var(--border-radius-sm);
-    background: transparent;
+    padding: 12px;
+    border-radius: var(--border-radius);
+    background: rgba(37, 99, 235, 0.1);
     border: 1px solid var(--border-color);
     transition: var(--transition);
     cursor: pointer;
@@ -96,15 +103,18 @@ body.dark-mode .header {
 .favorites-icon:hover {
     background: var(--primary-color);
     border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
 }
 
 body.dark-mode .favorites-icon {
+    background: rgba(37, 99, 235, 0.2);
     border-color: var(--border-color-dark);
 }
 
 .favorites-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     transition: var(--transition);
 }
 
@@ -119,18 +129,20 @@ body.dark-mode .favorites-icon {
 
 input[type="text"] {
     width: 100%;
-    padding: 12px 16px;
-    border: 1px solid var(--border-color);
+    padding: 16px 20px;
+    border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
     background: var(--card-bg);
-    font-size: 1rem;
+    font-size: 1.1rem;
     transition: var(--transition);
     outline: none;
+    backdrop-filter: blur(10px);
 }
 
 input[type="text"]:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    transform: translateY(-1px);
 }
 
 body.dark-mode input[type="text"] {
@@ -141,20 +153,22 @@ body.dark-mode input[type="text"] {
 
 button {
     width: 100%;
-    padding: 12px 16px;
-    margin-top: 12px;
+    padding: 16px 20px;
+    margin-top: 16px;
     border: none;
     border-radius: var(--border-radius);
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: white;
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
+    box-shadow: var(--shadow);
 }
 
 button:hover {
-    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 button:focus {
@@ -168,17 +182,16 @@ button:focus {
     left: 0;
     right: 0;
     background: var(--card-bg);
+    backdrop-filter: blur(20px);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-lg);
     z-index: 100;
     max-height: 300px;
     overflow-y: auto;
-    margin-top: 4px;
+    margin-top: 8px;
     list-style: none;
     padding: 0;
-    margin-left: 0;
-    margin-right: 0;
 }
 
 body.dark-mode .suggestions-list {
@@ -187,7 +200,7 @@ body.dark-mode .suggestions-list {
 }
 
 .suggestions-list li {
-    padding: 12px 16px;
+    padding: 16px 20px;
     cursor: pointer;
     border-bottom: 1px solid var(--border-color);
     transition: var(--transition);
@@ -201,7 +214,8 @@ body.dark-mode .suggestions-list {
 }
 
 .suggestions-list li:hover {
-    background: var(--light-bg);
+    background: rgba(37, 99, 235, 0.1);
+    transform: translateX(4px);
 }
 
 body.dark-mode .suggestions-list li {
@@ -209,21 +223,21 @@ body.dark-mode .suggestions-list li {
 }
 
 body.dark-mode .suggestions-list li:hover {
-    background: var(--dark-bg);
+    background: rgba(37, 99, 235, 0.2);
 }
 
 .suggestions-list span {
     color: var(--warning-color);
     font-size: 1em;
+    font-weight: 500;
 }
 
 #weatherData {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow);
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    border-radius: 0;
 }
 
 body.dark-mode #weatherData {
@@ -232,9 +246,9 @@ body.dark-mode #weatherData {
 }
 
 #weatherData h2 {
-    margin: 16px 0;
-    font-size: 1.5rem;
-    font-weight: 600;
+    margin: 20px 0;
+    font-size: 1.75rem;
+    font-weight: 700;
     text-align: center;
     color: var(--light-text);
 }
@@ -244,23 +258,83 @@ body.dark-mode #weatherData h2 {
 }
 
 #weatherData p {
-    margin: 8px 0;
-    font-size: 1rem;
-    padding: 8px 12px;
-    background: var(--light-bg);
+    margin: 12px 0;
+    font-size: 1.1rem;
+    padding: 16px 20px;
+    background: rgba(37, 99, 235, 0.05);
     border-radius: var(--border-radius-sm);
-    border-left: 3px solid var(--primary-color);
+    border-left: 4px solid var(--primary-color);
 }
 
 body.dark-mode #weatherData p {
-    background: var(--dark-bg);
+    background: rgba(37, 99, 235, 0.1);
 }
 
 .weather-icon {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
+    margin: 16px auto;
     display: block;
-    margin: 0 auto 16px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    transition: all 0.3s ease;
+    animation: fadeInScale 0.8s ease-out;
+}
+
+/* Floating animation for weather icons */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Fade in and scale animation when icon loads */
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Apply floating animation to weather icons */
+.weather-icon {
+    animation: fadeInScale 0.8s ease-out, float 3s ease-in-out infinite;
+}
+
+/* For forecast icons */
+.forecast-icon {
+    width: 56px;
+    height: 56px;
+    margin: 12px auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: all 0.3s ease;
+    animation: fadeInScale 0.6s ease-out;
+}
+
+.forecast-icon:hover {
+    transform: scale(1.15);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+/* Pulse animation for active states */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Apply pulse animation on weather data load */
+.weather-icon.loading {
+    animation: pulse 1s ease-in-out infinite;
 }
 
 #loadingSpinner {
@@ -269,7 +343,8 @@ body.dark-mode #weatherData p {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -277,14 +352,14 @@ body.dark-mode #weatherData p {
 }
 
 body.dark-mode #loadingSpinner {
-    background: rgba(15, 23, 42, 0.8);
+    background: rgba(15, 23, 42, 0.9);
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--border-color);
-    border-top: 3px solid var(--primary-color);
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -300,9 +375,10 @@ body.dark-mode #loadingSpinner {
     left: 50%;
     transform: translate(-50%, -50%);
     background: var(--card-bg);
+    backdrop-filter: blur(20px);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    padding: 24px;
+    padding: 32px;
     box-shadow: var(--shadow-lg);
     z-index: 1000;
     max-width: 90vw;
@@ -317,16 +393,16 @@ body.dark-mode .favorites-container {
 
 .favorites-container h3 {
     margin-top: 0;
-    margin-bottom: 16px;
-    font-size: 1.25rem;
-    font-weight: 600;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 700;
     text-align: center;
 }
 
 .favorites-container div {
-    padding: 12px;
-    margin: 8px 0;
-    background: var(--light-bg);
+    padding: 16px;
+    margin: 12px 0;
+    background: rgba(37, 99, 235, 0.05);
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--border-color);
     display: flex;
@@ -337,20 +413,23 @@ body.dark-mode .favorites-container {
 }
 
 body.dark-mode .favorites-container div {
-    background: var(--dark-bg);
+    background: rgba(37, 99, 235, 0.1);
     border-color: var(--border-color-dark);
 }
 
 .favorites-container div:hover {
-    background: rgba(37, 99, 235, 0.05);
+    background: rgba(37, 99, 235, 0.15);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
 }
 
 body.dark-mode .favorites-container div:hover {
-    background: rgba(37, 99, 235, 0.1);
+    background: rgba(37, 99, 235, 0.2);
 }
 
 .forecast-container {
     background: var(--card-bg);
+    backdrop-filter: blur(20px);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     padding: 24px;
@@ -365,56 +444,64 @@ body.dark-mode .forecast-container {
 
 .forecast-container h3 {
     margin-top: 0;
-    margin-bottom: 16px;
-    font-size: 1.25rem;
-    font-weight: 600;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 700;
     text-align: center;
+    color: var(--light-text);
+}
+
+body.dark-mode .forecast-container h3 {
+    color: var(--dark-text);
 }
 
 .forecast-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 16px;
     padding: 0;
 }
 
 .forecast-card {
-    background: var(--light-bg);
+    background: rgba(37, 99, 235, 0.05);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-sm);
-    padding: 16px;
+    padding: 20px;
     text-align: center;
     transition: var(--transition);
 }
 
 body.dark-mode .forecast-card {
-    background: var(--dark-bg);
+    background: rgba(37, 99, 235, 0.1);
     border-color: var(--border-color-dark);
 }
 
 .forecast-card:hover {
     box-shadow: var(--shadow);
+    transform: translateY(-4px);
 }
 
 .forecast-date {
-    font-weight: 500;
-    margin-bottom: 8px;
-    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
     color: var(--secondary-color);
 }
 
 .forecast-icon {
-    width: 48px;
-    height: 48px;
-    margin: 8px auto;
+    width: 56px;
+    height: 56px;
+    margin: 12px auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .forecast-temps {
     display: flex;
     justify-content: center;
-    gap: 8px;
-    margin: 8px 0;
-    font-weight: 500;
+    gap: 12px;
+    margin: 12px 0;
+    font-weight: 600;
+    font-size: 1.1rem;
 }
 
 .temp-max {
@@ -426,27 +513,141 @@ body.dark-mode .forecast-card {
 }
 
 .forecast-condition {
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: var(--secondary-color);
     text-transform: capitalize;
+    font-weight: 500;
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
     body {
-        padding: 12px;
+        padding: 8px;
+    }
+
+    .app-wrapper {
+        padding-top: 8px;
+        min-height: calc(100vh - 16px);
     }
 
     .container {
         padding: 20px;
+        margin: 0;
+        width: calc(100vw - 16px);
+        max-width: none;
+        border-radius: var(--border-radius-sm);
+    }
+
+    .header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
     }
 
     .header h1 {
         font-size: 1.75rem;
     }
 
+    .forecast-container {
+        padding: 16px;
+        margin-top: 16px;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
     .forecast-cards {
-        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 12px;
+    }
+
+    .forecast-card {
+        padding: 16px;
+    }
+
+    .forecast-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .favorites-container {
+        padding: 20px;
+        margin: 8px;
+        max-width: calc(100vw - 16px);
+        border-radius: var(--border-radius-sm);
+    }
+
+    #weatherData {
+        padding: 20px;
+    }
+
+    .weather-icon {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px; /* Mindre padding på mobil */
+    }
+
+    .container {
+        width: 95%;
+        max-width: 350px;
+        min-height: auto; /* La innholdet bestemme høyden */
+        padding: 12px; /* Kompakt padding */
+    }
+
+    .header h1 {
+        font-size: 1.5rem; /* Mindre tittel */
+        margin-bottom: 12px;
+    }
+
+    .input-group {
+        margin-bottom: 16px; /* Mindre mellomrom */
+    }
+
+    .container {
+        width: calc(100vw - 8px);
+        padding: 16px;
+        border-radius: var(--border-radius-sm);
+    }
+
+    #weatherData {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        border-radius: 0;
+        margin: 10px 0;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .forecast-container {
+        padding: 12px;
+        margin-top: 12px;
+    }
+
+    .forecast-container h3 {
+        font-size: 1.25rem;
+        margin-bottom: 16px;
+    }
+
+    .forecast-cards {
+        grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
 
@@ -454,35 +655,51 @@ body.dark-mode .forecast-card {
         padding: 12px;
     }
 
-    .forecast-icon {
-        width: 40px;
-        height: 40px;
-    }
-
-    .favorites-container {
-        padding: 20px;
-        margin: 12px;
-        max-width: calc(100vw - 24px);
-    }
-}
-
-@media (max-width: 480px) {
-    .header {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
-    }
-
-    .header h1 {
-        font-size: 1.5rem;
-    }
-
-    .forecast-cards {
-        grid-template-columns: repeat(2, 1fr);
+    .forecast-temps {
+        font-size: 1rem;
     }
 
     .suggestions-list {
         max-height: 200px;
+    }
+
+    .favorites-container {
+        padding: 16px;
+        margin: 4px;
+        max-width: calc(100vw - 8px);
+    }
+
+    input[type="text"] {
+        padding: 14px 16px;
+        font-size: 1rem;
+    }
+
+    button {
+        padding: 14px 16px;
+        font-size: 1rem;
+    }
+}
+
+/* Ultra small screens */
+@media (max-width: 320px) {
+    .container {
+        padding: 12px;
+    }
+
+    .forecast-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .header h1 {
+        font-size: 1.25rem;
+    }
+    #weatherData {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        border-radius: 0;
+        margin: 8px 0;
     }
 }
 
@@ -490,8 +707,8 @@ body.dark-mode .forecast-card {
 @media (prefers-contrast: more) {
     :root {
         --border-color: #000;
-        --shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.2);
+        --shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.3);
     }
 
     .container {
@@ -515,6 +732,6 @@ body.dark-mode .forecast-card {
 /* Focus styles for accessibility */
 button:focus-visible,
 .favorites-icon:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 3px solid var(--primary-color);
     outline-offset: 2px;
 }
