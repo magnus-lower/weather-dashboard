@@ -51,7 +51,7 @@ const CitySearch = {
                 star.innerHTML = '&#9733;'; // Star character
                 star.style.cursor = 'pointer';
                 star.style.marginLeft = '10px';
-                star.title = 'Add to Favorites';
+                star.title = 'Legg til i favoritter';
                 star.addEventListener('click', (e) => {
                     e.stopPropagation(); // Prevent clicking suggestion
                     Favorites.addToFavorites(city);
@@ -70,7 +70,7 @@ const CitySearch = {
             });
         } else {
             const li = document.createElement('li');
-            li.textContent = `No matching cities found for "${query}"`;
+            li.textContent = `Ingen byer funnet for "${query}"`;
             suggestionsList.appendChild(li);
         }
     },

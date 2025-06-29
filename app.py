@@ -65,7 +65,7 @@ def create_app(config_name=None):
 
         # Validate inputs
         if not city:
-            return jsonify({'error': 'City parameter is required'}), 400
+            return jsonify({'error': 'By-parameter er påkrevd'}), 400
 
         valid_city, city_error = validate_city_name(city)
         if not valid_city:
@@ -104,7 +104,7 @@ def create_app(config_name=None):
 
         # Validate inputs
         if not lat or not lon:
-            return jsonify({'error': 'Latitude and Longitude parameters are required'}), 400
+            return jsonify({'error': 'Breddegrad og lengdegrad parametere er påkrevd'}), 400
 
         valid_coords, coords_error = validate_coordinates(lat, lon)
         if not valid_coords:
@@ -143,7 +143,7 @@ def create_app(config_name=None):
 
         # Validate inputs
         if not city:
-            return jsonify({'error': 'City parameter is required'}), 400
+            return jsonify({'error': 'By-parameter er påkrevd'}), 400
 
         valid_city, city_error = validate_city_name(city)
         if not valid_city:
@@ -168,6 +168,39 @@ def create_app(config_name=None):
             DatabaseCache.set(cache_key, data, timeout=1800)  # 30 minutes for forecast
 
         return jsonify(data)
+
+    @app.route('/city_suggestions', methods=['GET'])
+    def get_city_suggestions():
+        """Get city suggestions for autocomplete"""
+        query = request.args.get('q', '').strip()
+
+        if not query:
+            return jsonify([])
+
+        # Validate and sanitize input
+        if len(query) < 2:
+            return jsonify([])
+
+        # Use weather service to get suggestions
+        suggestions = weather_service.fetch_city_suggestions(query)
+        return jsonify(suggestions)
+
+    @app.route('/reverse_geocode', methods=['GET'])
+    def reverse_geocode():
+        """Reverse geocode coordinates to city name"""
+        lat = request.args.get('lat', '').strip()
+        lon = request.args.get('lon', '').strip()
+
+        if not lat or not lon:
+            return jsonify({'error': 'Breddegrad og lengdegrad er påkrevd'}), 400
+
+        valid_coords, coords_error = validate_coordinates(lat, lon)
+        if not valid_coords:
+            return jsonify({'error': coords_error}), 400
+
+        # Use weather service to reverse geocode
+        location_data = weather_service.reverse_geocode(lat, lon)
+        return jsonify(location_data)
 
     @app.route('/analytics', methods=['GET'])
     def get_analytics():
@@ -200,7 +233,7 @@ def create_app(config_name=None):
         elif request.method == 'POST':
             data = request.get_json()
             if not data or 'city' not in data:
-                return jsonify({'error': 'City is required'}), 400
+                return jsonify({'error': 'By er påkrevd'}), 400
 
             city = data['city'].strip()
             country = data.get('country', 'NO').strip()
@@ -211,23 +244,23 @@ def create_app(config_name=None):
 
             success = FavoritesService.add_favorite(user_ip, city, country)
             if success:
-                return jsonify({'message': 'Favorite added successfully'})
+                return jsonify({'message': 'Favoritt lagt til'})
             else:
-                return jsonify({'error': 'Failed to add favorite'}), 500
+                return jsonify({'error': 'Kunne ikke legge til favoritt'}), 500
 
         elif request.method == 'DELETE':
             data = request.get_json()
             if not data or 'city' not in data:
-                return jsonify({'error': 'City is required'}), 400
+                return jsonify({'error': 'By er påkrevd'}), 400
 
             city = data['city'].strip()
             country = data.get('country', 'NO').strip()
 
             success = FavoritesService.remove_favorite(user_ip, city, country)
             if success:
-                return jsonify({'message': 'Favorite removed successfully'})
+                return jsonify({'message': 'Favoritt fjernet'})
             else:
-                return jsonify({'error': 'Favorite not found'}), 404
+                return jsonify({'error': 'Favoritt ikke funnet'}), 404
 
     @app.route('/health', methods=['GET'])
     def health_check():
@@ -261,31 +294,31 @@ def create_app(config_name=None):
             # Clear Flask cache
             cache.clear()
 
-            logger.info("All caches cleared successfully")
-            return jsonify({'message': 'All caches cleared successfully'})
+            logger.info("Alle cacher tømt")
+            return jsonify({'message': 'Alle cacher tømt'})
         except Exception as e:
             logger.error(f"Error clearing cache: {e}")
-            return jsonify({'error': 'Failed to clear cache'}), 500
+            return jsonify({'error': 'Kunne ikke tømme cache'}), 500
 
     # Error handlers
     @app.errorhandler(404)
     def not_found(error):
-        return jsonify({'error': 'Endpoint not found'}), 404
+        return jsonify({'error': 'Endepunkt ikke funnet'}), 404
 
     @app.errorhandler(400)
     def bad_request(error):
-        return jsonify({'error': 'Bad request'}), 400
+        return jsonify({'error': 'Ugyldig forespørsel'}), 400
 
     @app.errorhandler(500)
     def internal_error(error):
         logger.error(f"Internal server error: {str(error)}")
         db.session.rollback()
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': 'Intern serverfeil'}), 500
 
     @app.errorhandler(Exception)
     def handle_exception(e):
         logger.error(f"Unhandled Exception: {str(e)}", exc_info=True)
-        return jsonify({'error': 'An unexpected error occurred. Please try again later.'}), 500
+        return jsonify({'error': 'En uventet feil oppstod. Vennligst prøv igjen senere.'}), 500
 
     return app
 

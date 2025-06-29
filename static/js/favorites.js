@@ -31,9 +31,9 @@ const Favorites = {
         if (!favorites.includes(cityName)) {
             favorites.push(cityName);
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            alert(`${cityName} added to favorites!`);
+            alert(`${cityName} lagt til i favoritter!`);
         } else {
-            alert(`${cityName} is already in your favorites.`);
+            alert(`${cityName} er allerede i dine favoritter.`);
         }
     },
 
@@ -49,7 +49,7 @@ const Favorites = {
         const favorites = this.loadFavorites();
 
         if (favorites.length === 0) {
-            alert('No favorites added yet.');
+            alert('Ingen favoritter lagt til ennå.');
             return;
         }
 
@@ -60,7 +60,7 @@ const Favorites = {
         const favoritesContainer = document.createElement('div');
         favoritesContainer.id = 'favoritesContainer';
         favoritesContainer.classList.add('favorites-container');
-        favoritesContainer.innerHTML = '<h3>Your Favorites:</h3>';
+        favoritesContainer.innerHTML = '<h3>Dine favoritter:</h3>';
 
         favorites.forEach(city => {
             const cityRow = document.createElement('div');
@@ -88,7 +88,7 @@ const Favorites = {
             removeBtn.style.cursor = 'pointer';
             removeBtn.style.color = 'red';
             removeBtn.style.marginLeft = '15px';
-            removeBtn.title = 'Remove from favorites';
+            removeBtn.title = 'Fjern fra favoritter';
             removeBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent clicking city row
                 this.removeFromFavorites(city);
@@ -104,7 +104,7 @@ const Favorites = {
 
         // Close button
         const closeButton = document.createElement('button');
-        closeButton.textContent = 'Close';
+        closeButton.textContent = 'Lukk';
         closeButton.style.marginTop = '15px';
         closeButton.style.padding = '10px 15px';
         closeButton.style.backgroundColor = '#007bff';
@@ -120,7 +120,7 @@ const Favorites = {
 
     // Fetch weather for a favorite city
     fetchWeatherByCity(city) {
-        const unit = 'metric'; // Fixed to metric
+        const unit = 'metric';
         console.log(`Fetching weather for favorite city: ${city}`);
 
         // Extract city name, state (if exists), and country

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A real-time weather dashboard application providing current weather conditions for cities worldwide">
-    <title>Weather Dashboard - Real-time Weather Conditions</title>
+    <meta name="description" content="Et værvarsel dashboard som viser værforhold for byer over hele verden">
+    <title>Værdashboard - Sanntids værforhold</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -12,8 +12,8 @@
         <!-- Main Container -->
         <div class="container">
             <div class="header">
-                <h1>Weather Dashboard</h1>
-                <div class="favorites-icon" id="favoritesIcon" role="button" aria-label="Show favorites" tabindex="0">
+                <h1>Værdashboard</h1>
+                <div class="favorites-icon" id="favoritesIcon" role="button" aria-label="Vis favoritter" tabindex="0">
                     <!-- Star Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -23,9 +23,9 @@
 
             <!-- Input Fields and Buttons -->
             <div class="input-group">
-                <label for="cityInput" class="visually-hidden">Enter city name</label>
-                <input type="text" id="cityInput" placeholder="Enter city name" aria-autocomplete="list" aria-controls="citySuggestions">
-                <button id="getWeatherBtn" type="button">Get Weather</button>
+                <label for="cityInput" class="visually-hidden">Skriv inn bynavn</label>
+                <input type="text" id="cityInput" placeholder="Skriv inn bynavn" aria-autocomplete="list" aria-controls="citySuggestions">
+                <button id="getWeatherBtn" type="button">Hent værdata</button>
                 <ul id="citySuggestions" class="suggestions-list" role="listbox"></ul>
             </div>
 

@@ -53,35 +53,35 @@ def validate_coordinates(lat: str, lon: str) -> tuple[bool, Optional[str]]:
         lon_float = float(lon)
 
         if not (-90 <= lat_float <= 90):
-            return False, "Latitude must be between -90 and 90"
+            return False, "Breddegrad må være mellom -90 og 90"
 
         if not (-180 <= lon_float <= 180):
-            return False, "Longitude must be between -180 and 180"
+            return False, "Lengdegrad må være mellom -180 og 180"
 
         return True, None
 
     except (ValueError, TypeError):
-        return False, "Coordinates must be valid numbers"
+        return False, "Koordinater må være gyldige tall"
 
 
 def validate_city_name(city: str) -> tuple[bool, Optional[str]]:
     """Validate city name input"""
     if not city or not city.strip():
-        return False, "City name cannot be empty"
+        return False, "Bynavn kan ikke være tomt"
 
     # Remove extra spaces and check length
     city = city.strip()
     if len(city) < 2:
-        return False, "City name must be at least 2 characters"
+        return False, "Bynavn må være minst 2 tegn"
 
     if len(city) > 100:
-        return False, "City name too long"
+        return False, "Bynavn er for langt"
 
     # Check for valid characters (letters, spaces, hyphens, apostrophes)
     if not re.match(
-            r"^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ\s\-'.]+$",
+            r"^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽæøå\s\-'.]+$",
             city):
-        return False, "City name contains invalid characters"
+        return False, "Bynavn inneholder ugyldige tegn"
 
     return True, None
 
@@ -94,10 +94,10 @@ def validate_country_code(country: str) -> tuple[bool, Optional[str]]:
     country = country.strip().upper()
 
     if len(country) != 2:
-        return False, "Country code must be 2 characters (ISO 3166-1 alpha-2)"
+        return False, "Landkode må være 2 tegn (ISO 3166-1 alpha-2)"
 
     if not re.match(r"^[A-Z]{2}$", country):
-        return False, "Country code must contain only letters"
+        return False, "Landkode må kun inneholde bokstaver"
 
     return True, None
 

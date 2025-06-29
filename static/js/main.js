@@ -54,7 +54,7 @@ const WeatherApp = {
         const city = document.getElementById('cityInput').value.trim();
 
         if (!city) {
-            alert('Please enter a city name.');
+            alert('Vennligst skriv inn et bynavn.');
             return;
         }
 

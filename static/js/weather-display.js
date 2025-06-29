@@ -9,19 +9,19 @@ const WeatherDisplay = {
         const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
         const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
         const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
-        const unit = '°C'; // Fixed to Celsius
-        const windUnit = 'm/s'; // Fixed to metric
+        const unit = '°C';
+        const windUnit = 'm/s';
 
         document.getElementById('weatherData').innerHTML = `
-            <img src="${iconUrl}" alt="Weather Icon" class="weather-icon">
+            <img src="${iconUrl}" alt="Værikon" class="weather-icon">
             <h2>${data.name}</h2>
-            <p>Temperature: ${data.main.temp}${unit}</p>
-            <p>Feels Like: ${data.main.feels_like}${unit}</p>
-            <p>Weather: ${data.weather[0].description}</p>
-            <p>Humidity: ${data.main.humidity}%</p>
-            <p>Wind Speed: ${data.wind.speed} ${windUnit}</p>
-            <p>Sunrise: ${sunrise}</p>
-            <p>Sunset: ${sunset}</p>
+            <p>Temperatur: ${data.main.temp}${unit}</p>
+            <p>Føles som: ${data.main.feels_like}${unit}</p>
+            <p>Vær: ${data.weather[0].description}</p>
+            <p>Luftfuktighet: ${data.main.humidity}%</p>
+            <p>Vindhastighet: ${data.wind.speed} ${windUnit}</p>
+            <p>Soloppgang: ${sunrise}</p>
+            <p>Solnedgang: ${sunset}</p>
         `;
 
         // Update the background based on the main weather condition

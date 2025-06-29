@@ -2,7 +2,7 @@
 const ForecastService = {
     // Fetch 5-day weather forecast
     fetchForecast(city, country) {
-        const unit = 'metric'; // Fixed to metric since settings are removed
+        const unit = 'metric';
         UIUtils.showLoadingSpinner();
 
         const queryParams = {
@@ -23,15 +23,14 @@ const ForecastService = {
             .then(data => {
                 UIUtils.hideLoadingSpinner();
                 if (data.error) {
-                    alert(data.error);
+                    console.log('Forecast error:', data.error); // Log instead of alert
                 } else {
                     this.displayForecast(data);
                 }
             })
             .catch(error => {
                 UIUtils.hideLoadingSpinner();
-                alert('There was an error fetching the forecast data. Please try again later.');
-                console.error(error);
+                console.log('Forecast fetch error:', error); // Log instead of alert
             });
     },
 
@@ -44,18 +43,18 @@ const ForecastService = {
             const container = document.createElement('div');
             container.id = 'forecastContainer';
             container.className = 'forecast-container';
-            container.innerHTML = '<h3>5-Day Forecast</h3>';
+            container.innerHTML = '<h3>5-dagers varsel</h3>';
 
             // Insert after weather data
             weatherDataSection.after(container);
         } else {
             // Clear existing forecast data
-            forecastContainer.innerHTML = '<h3>5-Day Forecast</h3>';
+            forecastContainer.innerHTML = '<h3>5-dagers varsel</h3>';
         }
 
         // Group forecast data by day
         const dailyForecasts = this.groupForecastsByDay(data.list);
-        const unit = '°C'; // Fixed to Celsius
+        const unit = '°C';
 
         // Create a card for each day
         const forecastCards = document.createElement('div');

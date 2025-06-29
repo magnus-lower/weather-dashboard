@@ -6,7 +6,7 @@ const LocationService = {
 
     // Fetch weather by user's current location
     fetchWeatherByLocation(lat = null, lon = null) {
-        const unit = 'metric'; // Fixed to metric
+        const unit = 'metric';
 
         if (lat !== null && lon !== null) {
             console.log('Fetching weather for provided coordinates:', lat, lon);
@@ -38,7 +38,7 @@ const LocationService = {
                 }
             );
         } else {
-            alert('Geolocation is not supported by this browser.');
+            alert('Geolokasjon støttes ikke av denne nettleseren.');
         }
     },
 
@@ -48,20 +48,20 @@ const LocationService = {
 
         switch(error.code) {
             case error.PERMISSION_DENIED:
-                message += 'Location access was denied. Please check your location settings.';
+                message += 'Tilgang til lokasjon ble nektet. Vennligst sjekk lokasjonsinnstillingene.';
                 break;
             case error.POSITION_UNAVAILABLE:
-                message += 'Location information is unavailable.';
+                message += 'Lokasjonsinformasjon er ikke tilgjengelig.';
                 break;
             case error.TIMEOUT:
-                message += 'Location request timed out.';
+                message += 'Lokasjonsforespørsel tok for lang tid.';
                 break;
             default:
-                message += 'An unknown error occurred.';
+                message += 'En ukjent feil oppstod.';
                 break;
         }
 
-        message += ' Please enter a city name manually.';
+        message += ' Vennligst skriv inn et bynavn manuelt.';
         alert(message);
         console.error('Geolocation error:', error);
     },
@@ -69,7 +69,7 @@ const LocationService = {
     // Refresh weather data for last known location
     refreshWeatherData() {
         const state = WeatherApp.getState();
-        const unit = 'metric'; // Fixed to metric
+        const unit = 'metric';
 
         if (state.lastCity && state.lastCountry) {
             WeatherAPI.fetchWeatherData('/weather', {
@@ -84,7 +84,7 @@ const LocationService = {
                 unit
             });
         } else {
-            alert('No location or city data available. Please enter a city name or allow location access.');
+            alert('Ingen lokasjons- eller bydata tilgjengelig. Vennligst skriv inn et bynavn eller tillat tilgang til lokasjon.');
         }
     }
 };

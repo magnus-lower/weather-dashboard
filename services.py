@@ -41,26 +41,86 @@ class WeatherAPIService:
             response.raise_for_status()
             data = response.json()
 
-            # Validate response structure
-            if not self._validate_weather_response(data):
-                return {'error': 'Invalid weather data received from API'}
+            # Check if it's an error response from OpenWeatherMap
+            if 'cod' in data and data['cod'] != 200:
+                error_msg = data.get('message', 'Ukjent feil fra vær-API')
+                return {'error': error_msg}
 
             return data
 
         except requests.exceptions.Timeout:
             logger.error("Request timed out")
-            return {'error': 'The request timed out. Please try again later.'}
+            return {'error': 'Forespørselen tok for lang tid. Vennligst prøv igjen senere.'}
         except requests.exceptions.RequestException as e:
             logger.error(f"Network Error: {str(e)}")
-            return {'error': 'A network error occurred. Please check your connection and try again.'}
+            return {'error': 'En nettverksfeil oppstod. Vennligst sjekk internettforbindelsen og prøv igjen.'}
         except requests.exceptions.JSONDecodeError:
             logger.error("Invalid JSON response")
-            return {'error': 'Invalid response format from the weather API.'}
+            return {'error': 'Ugyldig respons fra vær-API.'}
+
+    def fetch_city_suggestions(self, query: str) -> List[Dict]:
+        """Fetch city suggestions from OpenWeatherMap Geocoding API"""
+        try:
+            # Sanitize input
+            import re
+            query = re.sub(r'[^\w\s,-]', '', query).strip()
+
+            if not query or len(query) < 2:
+                return []
+
+            url = f"https://api.openweathermap.org/geo/1.0/direct?q={requests.utils.quote(query)}&limit=10&appid={self.api_key}"
+
+            response = self.session.get(url)
+            response.raise_for_status()
+            data = response.json()
+
+            # Format the response for frontend
+            suggestions = []
+            for city in data:
+                suggestion = {
+                    'name': city['name'],
+                    'country': city['country'],
+                    'state': city.get('state', ''),
+                    'lat': city['lat'],
+                    'lon': city['lon']
+                }
+                suggestions.append(suggestion)
+
+            return suggestions
+
+        except Exception as e:
+            logger.error(f"Error fetching city suggestions: {e}")
+            return []
+
+    def reverse_geocode(self, lat: str, lon: str) -> Dict:
+        """Reverse geocode coordinates to get city information"""
+        try:
+            url = f"https://api.openweathermap.org/geo/1.0/reverse?lat={lat}&lon={lon}&limit=1&appid={self.api_key}"
+
+            response = self.session.get(url)
+            response.raise_for_status()
+            data = response.json()
+
+            if data and len(data) > 0:
+                location = data[0]
+                return {
+                    'name': location['name'],
+                    'country': location['country'],
+                    'state': location.get('state', ''),
+                    'lat': location['lat'],
+                    'lon': location['lon']
+                }
+            else:
+                return {'error': 'Ingen lokasjon funnet for disse koordinatene'}
+
+        except Exception as e:
+            logger.error(f"Error in reverse geocoding: {e}")
+            return {'error': 'Kunne ikke bestemme lokasjon'}
 
     def _validate_weather_response(self, data: Dict) -> bool:
         """Validate that weather response has required fields"""
-        required_fields = ['name', 'main', 'weather', 'wind', 'sys']
-        return all(field in data for field in required_fields)
+        # Simplified validation - just check if we have basic data
+        return 'name' in data or 'list' in data
 
     def parse_weather_data(self, raw_data: Dict) -> Optional[WeatherData]:
         """Parse raw API response into structured data"""
@@ -150,7 +210,7 @@ class WeatherAnalytics:
             }
         except Exception as e:
             logger.error(f"Error getting query stats: {e}")
-            return {'error': 'Unable to fetch statistics'}
+            return {'error': 'Kan ikke hente statistikk'}
 
 
 class DatabaseCache:
