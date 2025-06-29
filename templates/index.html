@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Et værvarsel dashboard som viser værforhold for byer over hele verden">
     <title>Værdashboard - Sanntids værforhold</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="app-wrapper">
@@ -49,13 +49,12 @@
     </div>
 
     <!-- JavaScript Modules - Load in order -->
-    <script src="{{ url_for('static', filename='js/ui-utils.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/weather-api.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/weather-display.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/forecast-service.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/city-search.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/location-service.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="/static/js/ui-utils.js"></script>
+    <script src="/static/js/weather-api.js"></script>
+    <script src="/static/js/weather-display.js"></script>
+    <script src="/static/js/location-service.js"></script>
+    <script src="/static/js/favorites.js"></script>
+    <script src="/static/js/city-search.js"></script>
+    <script src="/static/js/main.js"></script>
 </body>
 </html>
