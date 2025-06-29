@@ -18,7 +18,6 @@ const WeatherDisplay = {
             <p>Temperatur: ${data.main.temp}${unit}</p>
             <p>Føles som: ${data.main.feels_like}${unit}</p>
             <p>Vær: ${data.weather[0].description}</p>
-            <p>Luftfuktighet: ${data.main.humidity}%</p>
             <p>Vindhastighet: ${data.wind.speed} ${windUnit}</p>
             <p>Soloppgang: ${sunrise}</p>
             <p>Solnedgang: ${sunset}</p>
