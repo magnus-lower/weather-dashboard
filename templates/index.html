@@ -19,13 +19,6 @@
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                     </svg>
                 </div>
-                <div class="settings-icon" id="settingsGear">
-                    <!-- Inline SVG for Gear Icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15.4a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 5 8.6a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8.6 5a1.65 1.65 0 0 0 1.51-1V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 8.6a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                </div>
             </div>
 
             <!-- Input Fields and Buttons -->
@@ -44,44 +37,16 @@
                 <div class="spinner"></div>
             </div>
         </div>
-
-        <!-- Settings Menu -->
-        <div class="settings-menu" id="settingsMenu">
-            <h3>Settings</h3>
-
-            <!-- Dark Mode Toggle -->
-            <div class="setting-item">
-                <div class="setting-icon">
-                    <img src="https://img.icons8.com/color/48/000000/sun.png" alt="Sun Icon">
-                </div>
-                <div class="setting-details">
-                    <label class="switch">
-                        <input type="checkbox" id="darkModeToggle">
-                        <span class="slider"></span>
-                    </label>
-                    <p>Light / Dark Mode</p>
-                </div>
-            </div>
-
-            <!-- Unit Toggle (Celsius/Fahrenheit & Wind Speed) -->
-            <div class="setting-item">
-                <div class="setting-icon">
-                    <img src="https://img.icons8.com/ios-filled/50/000000/temperature.png" alt="Temperature Icon">
-                </div>
-                <div class="setting-details">
-                    <label class="switch">
-                        <input type="checkbox" id="unitToggle">
-                        <span class="slider"></span>
-                    </label>
-                    <p>°C / °F and m/s / mph</p>
-                </div>
-            </div>
-
-            <button id="closeSettings">Close</button>
-        </div>
     </div>
 
-    <!-- External JavaScript -->
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <!-- JavaScript Modules - Load in order -->
+    <script src="{{ url_for('static', filename='js/ui-utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/weather-api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/weather-display.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/forecast-service.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/city-search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/location-service.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
