@@ -462,6 +462,67 @@ body.dark-mode .forecast-container h3 {
     padding: 0;
 }
 
+/* Header actions container */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Back to site button */
+.back-to-site-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid var(--primary-color);
+}
+
+.back-to-site-btn:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.back-to-site-btn:active {
+    transform: translateY(0);
+}
+
+.back-to-site-btn svg {
+    flex-shrink: 0;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .header-actions {
+        gap: 8px;
+    }
+
+    .back-to-site-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .back-to-site-btn span {
+        display: none; /* Hide text on very small screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .back-to-site-btn {
+        padding: 8px;
+        min-width: 40px;
+        justify-content: center;
+    }
+}
+
 .forecast-card {
     background: rgba(37, 99, 235, 0.05);
     border: 1px solid var(--border-color);
