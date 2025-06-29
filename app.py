@@ -1,134 +1,297 @@
-from datetime import datetime
-
-from flask import Flask, render_template, request, jsonify
-import requests
-from flask_caching import Cache
-from dotenv import load_dotenv
-import logging
+# app.py - Main Flask application (refactored and modular)
 import os
+import logging
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify
+from flask_caching import Cache
 
-# Load environment variables
-load_dotenv()
-
-app = Flask(__name__)
-
-# Configure caching (in-memory cache)
-app.config['CACHE_TYPE'] = 'SimpleCache'
-app.config['CACHE_DEFAULT_TIMEOUT'] = 300  # Cache timeout in seconds (5 minutes)
-cache = Cache(app)
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-# API Key and Base URL
-API_KEY = os.getenv('API_KEY')
-if not API_KEY:
-    logger.critical("API_KEY missing from environment variables")
-    raise ValueError("API_KEY is missing. Please set it in your .env file.")
-BASE_URL = 'https://api.openweathermap.org/data/2.5/'
+# Import our modules
+from config import config
+from models import db, WeatherQuery, WeatherCache, UserFavorite
+from services import WeatherAPIService, WeatherAnalytics, DatabaseCache, FavoritesService
+from utils import make_cache_key, get_user_ip, validate_coordinates, validate_city_name, calculate_response_time
 
 
-# Utility function to fetch and validate weather data
-def fetch_weather_data(url):
-    try:
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()  # Raise exception for HTTP errors
-        return response.json()
-    except requests.exceptions.Timeout:
-        logger.error("Request timed out")
-        return {'error': 'The request timed out. Please try again later.'}
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Network Error: {str(e)}")
-        return {'error': 'A network error occurred. Please check your connection and try again.'}
-    except requests.exceptions.JSONDecodeError:
-        logger.error("Invalid JSON response")
-        return {'error': 'Invalid response format from the weather API.'}
+def create_app(config_name=None):
+    """Application factory pattern"""
+    if config_name is None:
+        config_name = os.environ.get('FLASK_CONFIG', 'default')
+
+    app = Flask(__name__)
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
+
+    # Initialize extensions
+    db.init_app(app)
+    cache = Cache(app)
+
+    # Configure logging
+    logging.basicConfig(
+        level=getattr(logging, app.config['LOG_LEVEL']),
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logger = logging.getLogger(__name__)
+
+    # Validate API key
+    if not app.config['WEATHER_API_KEY']:
+        logger.critical("WEATHER_API_KEY missing from environment variables")
+        raise ValueError("WEATHER_API_KEY is missing. Please set it in your .env file.")
+
+    # Initialize weather service
+    weather_service = WeatherAPIService(
+        api_key=app.config['WEATHER_API_KEY'],
+        base_url=app.config['WEATHER_API_BASE_URL']
+    )
+
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+        logger.info("Database tables created successfully")
+
+    # Routes
+    @app.route('/')
+    def home():
+        """Render main page"""
+        return render_template('index.html')
+
+    @app.route('/weather', methods=['GET'])
+    def get_weather():
+        """Get current weather by city"""
+        start_time = datetime.utcnow()
+
+        city = request.args.get('city', '').strip()
+        country = request.args.get('country', 'NO').strip()
+        unit = request.args.get('unit', 'metric')
+
+        # Validate inputs
+        if not city:
+            return jsonify({'error': 'City parameter is required'}), 400
+
+        valid_city, city_error = validate_city_name(city)
+        if not valid_city:
+            return jsonify({'error': city_error}), 400
+
+        # Check cache first
+        cache_key = make_cache_key(city=city, country=country)
+        cached_data = DatabaseCache.get(cache_key)
+        if cached_data:
+            logger.info(f"Cache hit for {city}, {country}")
+            return jsonify(cached_data)
+
+        # Fetch from API
+        url = f'{weather_service.base_url}weather?q={city},{country}&units={unit}&appid={weather_service.api_key}'
+        data = weather_service.fetch_weather_data(url)
+
+        # Log analytics
+        response_time = calculate_response_time(start_time)
+        WeatherAnalytics.log_query(city, country, get_user_ip(), response_time, 'weather')
+
+        # Cache successful responses
+        if 'error' not in data:
+            DatabaseCache.set(cache_key, data)
+            logger.info(f"Cached weather data for {city}, {country}")
+
+        return jsonify(data)
+
+    @app.route('/weather_by_coords', methods=['GET'])
+    def get_weather_by_coords():
+        """Get current weather by coordinates"""
+        start_time = datetime.utcnow()
+
+        lat = request.args.get('lat', '').strip()
+        lon = request.args.get('lon', '').strip()
+        unit = request.args.get('unit', 'metric')
+
+        # Validate inputs
+        if not lat or not lon:
+            return jsonify({'error': 'Latitude and Longitude parameters are required'}), 400
+
+        valid_coords, coords_error = validate_coordinates(lat, lon)
+        if not valid_coords:
+            return jsonify({'error': coords_error}), 400
+
+        # Check cache
+        cache_key = make_cache_key(lat=lat, lon=lon)
+        cached_data = DatabaseCache.get(cache_key)
+        if cached_data:
+            return jsonify(cached_data)
+
+        # Fetch from API
+        url = f'{weather_service.base_url}weather?lat={lat}&lon={lon}&units={unit}&appid={weather_service.api_key}'
+        data = weather_service.fetch_weather_data(url)
+
+        # Log analytics (use city from response if available)
+        response_time = calculate_response_time(start_time)
+        city_name = data.get('name', 'Unknown') if 'error' not in data else 'Unknown'
+        country_code = data.get('sys', {}).get('country', 'Unknown') if 'error' not in data else 'Unknown'
+        WeatherAnalytics.log_query(city_name, country_code, get_user_ip(), response_time, 'coords')
+
+        # Cache successful responses
+        if 'error' not in data:
+            DatabaseCache.set(cache_key, data)
+
+        return jsonify(data)
+
+    @app.route('/forecast', methods=['GET'])
+    def get_forecast():
+        """Get 5-day weather forecast"""
+        start_time = datetime.utcnow()
+
+        city = request.args.get('city', '').strip()
+        country = request.args.get('country', 'NO').strip()
+        unit = request.args.get('unit', 'metric')
+
+        # Validate inputs
+        if not city:
+            return jsonify({'error': 'City parameter is required'}), 400
+
+        valid_city, city_error = validate_city_name(city)
+        if not valid_city:
+            return jsonify({'error': city_error}), 400
+
+        # Check cache
+        cache_key = f"forecast:{city.lower()}:{country.lower()}:{datetime.now().hour}"
+        cached_data = DatabaseCache.get(cache_key)
+        if cached_data:
+            return jsonify(cached_data)
+
+        # Fetch from API
+        url = f'{weather_service.base_url}forecast?q={city},{country}&units={unit}&appid={weather_service.api_key}'
+        data = weather_service.fetch_weather_data(url)
+
+        # Log analytics
+        response_time = calculate_response_time(start_time)
+        WeatherAnalytics.log_query(city, country, get_user_ip(), response_time, 'forecast')
+
+        # Cache successful responses
+        if 'error' not in data:
+            DatabaseCache.set(cache_key, data, timeout=1800)  # 30 minutes for forecast
+
+        return jsonify(data)
+
+    @app.route('/analytics', methods=['GET'])
+    def get_analytics():
+        """Get weather query analytics"""
+        stats = WeatherAnalytics.get_query_stats()
+        popular_cities = WeatherAnalytics.get_popular_cities()
+
+        return jsonify({
+            'stats': stats,
+            'popular_cities': popular_cities
+        })
+
+    @app.route('/popular_cities', methods=['GET'])
+    def get_popular_cities():
+        """Get most popular cities"""
+        limit = request.args.get('limit', 10, type=int)
+        limit = min(limit, 50)  # Cap at 50
+        cities = WeatherAnalytics.get_popular_cities(limit)
+        return jsonify(cities)
+
+    @app.route('/favorites', methods=['GET', 'POST', 'DELETE'])
+    def manage_favorites():
+        """Manage user favorites (backend tracking)"""
+        user_ip = get_user_ip()
+
+        if request.method == 'GET':
+            favorites = FavoritesService.get_user_favorites(user_ip)
+            return jsonify(favorites)
+
+        elif request.method == 'POST':
+            data = request.get_json()
+            if not data or 'city' not in data:
+                return jsonify({'error': 'City is required'}), 400
+
+            city = data['city'].strip()
+            country = data.get('country', 'NO').strip()
+
+            valid_city, city_error = validate_city_name(city)
+            if not valid_city:
+                return jsonify({'error': city_error}), 400
+
+            success = FavoritesService.add_favorite(user_ip, city, country)
+            if success:
+                return jsonify({'message': 'Favorite added successfully'})
+            else:
+                return jsonify({'error': 'Failed to add favorite'}), 500
+
+        elif request.method == 'DELETE':
+            data = request.get_json()
+            if not data or 'city' not in data:
+                return jsonify({'error': 'City is required'}), 400
+
+            city = data['city'].strip()
+            country = data.get('country', 'NO').strip()
+
+            success = FavoritesService.remove_favorite(user_ip, city, country)
+            if success:
+                return jsonify({'message': 'Favorite removed successfully'})
+            else:
+                return jsonify({'error': 'Favorite not found'}), 404
+
+    @app.route('/health', methods=['GET'])
+    def health_check():
+        """Health check endpoint for monitoring"""
+        try:
+            # Test database connection
+            db.session.execute('SELECT 1')
+            db_status = 'healthy'
+        except Exception:
+            db_status = 'unhealthy'
+
+        # Clean up expired cache entries
+        expired_count = DatabaseCache.clear_expired()
+
+        return jsonify({
+            'status': 'healthy' if db_status == 'healthy' else 'degraded',
+            'timestamp': datetime.utcnow().isoformat(),
+            'version': '1.1.0',
+            'database': db_status,
+            'cache_cleaned': expired_count
+        })
+
+    @app.route('/clear_cache', methods=['POST'])
+    def clear_cache():
+        """Clear all cache entries (admin endpoint)"""
+        try:
+            # Clear database cache
+            WeatherCache.query.delete()
+            db.session.commit()
+
+            # Clear Flask cache
+            cache.clear()
+
+            logger.info("All caches cleared successfully")
+            return jsonify({'message': 'All caches cleared successfully'})
+        except Exception as e:
+            logger.error(f"Error clearing cache: {e}")
+            return jsonify({'error': 'Failed to clear cache'}), 500
+
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({'error': 'Endpoint not found'}), 404
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({'error': 'Bad request'}), 400
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        logger.error(f"Internal server error: {str(error)}")
+        db.session.rollback()
+        return jsonify({'error': 'Internal server error'}), 500
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        logger.error(f"Unhandled Exception: {str(e)}", exc_info=True)
+        return jsonify({'error': 'An unexpected error occurred. Please try again later.'}), 500
+
+    return app
 
 
-# Utility function for custom cache key
-def make_cache_key(*args, **kwargs):
-    """
-    Generates a unique cache key based on route arguments and query parameters.
-    """
-    # Add timestamp-based expiration for rapidly changing weather
-    current_hour = datetime.now().hour
-    return f"{str(request.args)}:{current_hour}"
-
-
-# Home route
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-
-# Route to get current weather by city (with smarter caching)
-@app.route('/weather', methods=['GET'])
-@cache.cached(timeout=300, key_prefix=make_cache_key)  # Custom cache key
-def get_weather():
-    city = request.args.get('city')
-    country = request.args.get('country', 'NO')  # Default country to Norway
-    unit = request.args.get('unit', 'metric')  # Default to metric units
-
-    if not city:
-        logger.warning("City parameter is missing in request.")
-        return jsonify({'error': 'City parameter is required'}), 400
-
-    url = f'{BASE_URL}weather?q={city},{country}&units={unit}&appid={API_KEY}'
-    data = fetch_weather_data(url)
-    return jsonify(data)
-
-
-# Route to get weather by coordinates (with smarter caching)
-@app.route('/weather_by_coords', methods=['GET'])
-@cache.cached(timeout=300, key_prefix=make_cache_key)  # Custom cache key
-def get_weather_by_coords():
-    lat = request.args.get('lat')
-    lon = request.args.get('lon')
-    unit = request.args.get('unit', 'metric')  # Default to metric units
-
-    if not lat or not lon:
-        logger.warning("Latitude or Longitude parameter is missing in request.")
-        return jsonify({'error': 'Latitude and Longitude parameters are required'}), 400
-
-    url = f'{BASE_URL}weather?lat={lat}&lon={lon}&units={unit}&appid={API_KEY}'
-    data = fetch_weather_data(url)
-    return jsonify(data)
-
-
-# Route to clear the cache programmatically (optional, for development)
-@app.route('/clear_cache', methods=['POST'])
-def clear_cache():
-    """
-    Clears the cache for all routes. Useful for testing or development.
-    """
-    cache.clear()
-    logger.info("Cache cleared successfully.")
-    return jsonify({'message': 'Cache cleared successfully.'})
-
-
-@app.route('/forecast', methods=['GET'])
-@cache.cached(timeout=300, key_prefix=make_cache_key)
-def get_forecast():
-    city = request.args.get('city')
-    country = request.args.get('country', 'NO')
-    unit = request.args.get('unit', 'metric')
-
-    if not city:
-        logger.warning("City parameter is missing in forecast request.")
-        return jsonify({'error': 'City parameter is required'}), 400
-
-    url = f'{BASE_URL}forecast?q={city},{country}&units={unit}&appid={API_KEY}'
-    data = fetch_weather_data(url)
-    return jsonify(data)
-
-
-# Error handler for uncaught exceptions
-@app.errorhandler(Exception)
-def handle_exception(e):
-    logger.error(f"Unhandled Exception: {str(e)}", exc_info=True)
-    return jsonify({'error': 'An unexpected error occurred. Please try again later.'}), 500
-
+# Create app instance
+app = create_app()
 
 if __name__ == '__main__':
     app.run(debug=True)
