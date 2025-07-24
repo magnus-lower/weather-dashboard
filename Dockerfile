@@ -39,4 +39,5 @@ ENV FLASK_CONFIG=production
 EXPOSE 8080
 
 # Start the application using Gunicorn with correct app module
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "app:app"]
+CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8080", "app:app"]
+
