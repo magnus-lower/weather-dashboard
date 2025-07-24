@@ -1,13 +1,13 @@
-# app.py - Main Flask application (refactored and modular)
-import os
+# app.py - Main Flask application (Database-free version)
 import logging
+import os
 from datetime import datetime
+
 from flask import Flask, render_template, request, jsonify
 from flask_caching import Cache
 
 # Import our modules
 from config import config
-from models import db, WeatherQuery, WeatherCache, UserFavorite
 from services import WeatherAPIService, WeatherAnalytics, DatabaseCache, FavoritesService
 from utils import make_cache_key, get_user_ip, validate_coordinates, validate_city_name, calculate_response_time
 
@@ -22,7 +22,6 @@ def create_app(config_name=None):
     config[config_name].init_app(app)
 
     # Initialize extensions
-    db.init_app(app)
     cache = Cache(app)
 
     # Configure logging
@@ -43,10 +42,7 @@ def create_app(config_name=None):
         base_url=app.config['WEATHER_API_BASE_URL']
     )
 
-    # Create database tables
-    with app.app_context():
-        db.create_all()
-        logger.info("Database tables created successfully")
+    logger.info("Application started successfully (database-free mode)")
 
     # Routes
     @app.route('/')
@@ -223,7 +219,7 @@ def create_app(config_name=None):
 
     @app.route('/favorites', methods=['GET', 'POST', 'DELETE'])
     def manage_favorites():
-        """Manage user favorites (backend tracking)"""
+        """Manage user favorites (in-memory tracking)"""
         user_ip = get_user_ip()
 
         if request.method == 'GET':
@@ -246,7 +242,7 @@ def create_app(config_name=None):
             if success:
                 return jsonify({'message': 'Favoritt lagt til'})
             else:
-                return jsonify({'error': 'Kunne ikke legge til favoritt'}), 500
+                return jsonify({'error': 'Favoritt eksisterer allerede'}), 409
 
         elif request.method == 'DELETE':
             data = request.get_json()
@@ -265,37 +261,33 @@ def create_app(config_name=None):
     @app.route('/health', methods=['GET'])
     def health_check():
         """Health check endpoint for monitoring"""
-        try:
-            # Test database connection
-            db.session.execute('SELECT 1')
-            db_status = 'healthy'
-        except Exception:
-            db_status = 'unhealthy'
-
         # Clean up expired cache entries
         expired_count = DatabaseCache.clear_expired()
 
         return jsonify({
-            'status': 'healthy' if db_status == 'healthy' else 'degraded',
+            'status': 'healthy',
             'timestamp': datetime.utcnow().isoformat(),
-            'version': '1.1.0',
-            'database': db_status,
+            'version': '1.2.0',
+            'mode': 'in-memory',
             'cache_cleaned': expired_count
         })
 
     @app.route('/clear_cache', methods=['POST'])
     def clear_cache():
-        """Clear all cache entries (admin endpoint)"""
+        """Clear all cache entries"""
         try:
-            # Clear database cache
-            WeatherCache.query.delete()
-            db.session.commit()
+            # Clear in-memory cache
+            from models import weather_cache, analytics, favorites
+            cache_count = weather_cache.clear()
 
             # Clear Flask cache
             cache.clear()
 
             logger.info("Alle cacher tømt")
-            return jsonify({'message': 'Alle cacher tømt'})
+            return jsonify({
+                'message': 'Alle cacher tømt',
+                'cleared_entries': cache_count
+            })
         except Exception as e:
             logger.error(f"Error clearing cache: {e}")
             return jsonify({'error': 'Kunne ikke tømme cache'}), 500
@@ -312,7 +304,6 @@ def create_app(config_name=None):
     @app.errorhandler(500)
     def internal_error(error):
         logger.error(f"Internal server error: {str(error)}")
-        db.session.rollback()
         return jsonify({'error': 'Intern serverfeil'}), 500
 
     @app.errorhandler(Exception)
@@ -323,8 +314,13 @@ def create_app(config_name=None):
     return app
 
 
-# Create app instance
-app = create_app()
+config_name = os.environ.get('FLASK_CONFIG', 'development')
+app = create_app(config_name)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Development server
+    app.run(
+        debug=app.config['DEBUG'],
+        host='127.0.0.1',
+        port=5000
+    )

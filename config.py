@@ -1,4 +1,4 @@
-# config.py - Application configuration
+# config.py - Application configuration (Database-free version)
 import os
 from dotenv import load_dotenv
 
@@ -8,10 +8,8 @@ load_dotenv()
 class Config:
     """Base configuration"""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///weather_data.db'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Cache configuration
+    # Cache configuration (in-memory only)
     CACHE_TYPE = 'SimpleCache'
     CACHE_DEFAULT_TIMEOUT = 300  # 5 minutes
 
@@ -35,33 +33,32 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-                              'sqlite:///weather_dev.db'
 
 
 class TestingConfig(Config):
     """Testing configuration"""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    WTF_CSRF_ENABLED = False
 
 
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-                              'sqlite:///weather_prod.db'
 
     @classmethod
     def init_app(cls, app):
         Config.init_app(app)
 
-        # Log to syslog in production
+        # Log to stdout in production (for Fly.io)
         import logging
-        from logging.handlers import SysLogHandler
-        syslog_handler = SysLogHandler()
-        syslog_handler.setLevel(logging.WARNING)
-        app.logger.addHandler(syslog_handler)
+        import sys
+        
+        # Create a stream handler that outputs to stdout
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        stream_handler.setFormatter(formatter)
+        app.logger.addHandler(stream_handler)
+        app.logger.setLevel(logging.INFO)
 
 
 config = {
