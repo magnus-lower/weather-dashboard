@@ -4,16 +4,109 @@ const Favorites = {
         console.log('Favorites module initialized');
         this.loadFavorites();
         this.setupEventListeners();
+        this.updateFavoritesDisplay();
     },
 
     // Set up event listeners for favorites
     setupEventListeners() {
-        const favoritesIcon = document.getElementById('favoritesIcon');
-        if (favoritesIcon) {
-            favoritesIcon.addEventListener('click', () => this.showFavorites());
+        const favoritesBtn = document.getElementById('favoritesBtn');
+        const favoritesDropdown = document.getElementById('favoritesDropdown');
+        
+        if (favoritesBtn) {
+            favoritesBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleFavoritesDropdown();
+            });
         } else {
-            console.error("❌ `favoritesIcon` not found in the DOM.");
+            console.error("❌ `favoritesBtn` not found in the DOM.");
         }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (favoritesDropdown && !favoritesBtn?.contains(e.target) && !favoritesDropdown?.contains(e.target)) {
+                this.closeFavoritesDropdown();
+            }
+        });
+    },
+
+    // Toggle favorites dropdown
+    toggleFavoritesDropdown() {
+        const dropdown = document.getElementById('favoritesDropdown');
+        if (dropdown) {
+            const isVisible = dropdown.classList.contains('visible');
+            if (isVisible) {
+                this.closeFavoritesDropdown();
+            } else {
+                this.openFavoritesDropdown();
+            }
+        }
+    },
+
+    // Open favorites dropdown
+    openFavoritesDropdown() {
+        const dropdown = document.getElementById('favoritesDropdown');
+        if (dropdown) {
+            this.updateFavoritesDisplay();
+            dropdown.classList.add('visible');
+        }
+    },
+
+    // Close favorites dropdown
+    closeFavoritesDropdown() {
+        const dropdown = document.getElementById('favoritesDropdown');
+        if (dropdown) {
+            dropdown.classList.remove('visible');
+        }
+    },
+
+    // Update favorites display in dropdown
+    updateFavoritesDisplay() {
+        const favoritesList = document.getElementById('favoritesList');
+        if (!favoritesList) return;
+
+        const favorites = this.loadFavorites();
+        
+        if (favorites.length === 0) {
+            favoritesList.innerHTML = `
+                <div class="no-favorites" data-en="No favorites added yet" data-no="Ingen favoritter lagt til ennå">
+                    Ingen favoritter lagt til ennå
+                </div>
+            `;
+            return;
+        }
+
+        favoritesList.innerHTML = favorites.map(city => `
+            <div class="favorite-item" data-city="${city}">
+                <div class="favorite-name">
+                    <span>⭐</span>
+                    <span>${city}</span>
+                </div>
+                <button class="favorite-remove" title="Fjern fra favoritter" data-city="${city}">
+                    ❌
+                </button>
+            </div>
+        `).join('');
+
+        // Add event listeners to favorite items
+        favoritesList.querySelectorAll('.favorite-item').forEach(item => {
+            const cityName = item.dataset.city;
+            item.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('favorite-remove')) {
+                    this.fetchWeatherByCity(cityName);
+                    this.closeFavoritesDropdown();
+                }
+            });
+        });
+
+        // Add event listeners to remove buttons
+        favoritesList.querySelectorAll('.favorite-remove').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const cityName = btn.dataset.city;
+                this.removeFromFavorites(cityName);
+                this.updateFavoritesDisplay();
+            });
+        });
     },
 
     // Load favorites from localStorage
@@ -26,14 +119,36 @@ const Favorites = {
     // Add city to favorites
     addToFavorites(city) {
         const favorites = this.loadFavorites();
-        const cityName = `${city.name}${city.state ? `, ${city.state}` : ''}, ${city.country}`;
+        let cityName;
+        
+        // Handle both string and object input
+        if (typeof city === 'string') {
+            cityName = city;
+        } else {
+            // Build city name from object
+            cityName = city.name;
+            if (city.state) {
+                cityName += `, ${city.state}`;
+            }
+            cityName += `, ${city.country}`;
+        }
 
         if (!favorites.includes(cityName)) {
             favorites.push(cityName);
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            alert(`${cityName} lagt til i favoritter!`);
+            this.updateFavoritesDisplay();
+            
+            const lang = localStorage.getItem('language') || 'no';
+            const message = lang === 'no' 
+                ? `${cityName} lagt til i favoritter!`
+                : `${cityName} added to favorites!`;
+            alert(message);
         } else {
-            alert(`${cityName} er allerede i dine favoritter.`);
+            const lang = localStorage.getItem('language') || 'no';
+            const message = lang === 'no' 
+                ? `${cityName} er allerede i dine favoritter.`
+                : `${cityName} is already in your favorites.`;
+            alert(message);
         }
     },
 
@@ -42,80 +157,7 @@ const Favorites = {
         let favorites = this.loadFavorites();
         favorites = favorites.filter(favCity => favCity !== city);
         localStorage.setItem('favorites', JSON.stringify(favorites));
-    },
-
-    // Show favorites popup
-    showFavorites() {
-        const favorites = this.loadFavorites();
-
-        if (favorites.length === 0) {
-            alert('Ingen favoritter lagt til ennå.');
-            return;
-        }
-
-        // Remove existing container
-        document.getElementById('favoritesContainer')?.remove();
-
-        // Create new container
-        const favoritesContainer = document.createElement('div');
-        favoritesContainer.id = 'favoritesContainer';
-        favoritesContainer.classList.add('favorites-container');
-        favoritesContainer.innerHTML = '<h3>Dine favoritter:</h3>';
-
-        favorites.forEach(city => {
-            const cityRow = document.createElement('div');
-            cityRow.style.display = 'flex';
-            cityRow.style.justifyContent = 'space-between';
-            cityRow.style.alignItems = 'center';
-            cityRow.style.padding = '10px';
-            cityRow.style.borderBottom = '1px solid #ddd';
-            cityRow.style.cursor = 'pointer';
-
-            const cityName = document.createElement('span');
-            cityName.textContent = `⭐ ${city}`;
-            cityName.style.flexGrow = '1';
-            cityName.style.textAlign = 'left';
-            cityRow.appendChild(cityName);
-
-            cityRow.addEventListener('click', () => {
-                this.fetchWeatherByCity(city);
-                favoritesContainer.remove();
-            });
-
-            // Remove button
-            const removeBtn = document.createElement('span');
-            removeBtn.textContent = '❌';
-            removeBtn.style.cursor = 'pointer';
-            removeBtn.style.color = 'red';
-            removeBtn.style.marginLeft = '15px';
-            removeBtn.title = 'Fjern fra favoritter';
-            removeBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent clicking city row
-                this.removeFromFavorites(city);
-                cityRow.remove();
-                if (favoritesContainer.querySelectorAll('div').length === 0) {
-                    favoritesContainer.remove();
-                }
-            });
-
-            cityRow.appendChild(removeBtn);
-            favoritesContainer.appendChild(cityRow);
-        });
-
-        // Close button
-        const closeButton = document.createElement('button');
-        closeButton.textContent = 'Lukk';
-        closeButton.style.marginTop = '15px';
-        closeButton.style.padding = '10px 15px';
-        closeButton.style.backgroundColor = '#007bff';
-        closeButton.style.color = 'white';
-        closeButton.style.border = 'none';
-        closeButton.style.borderRadius = '5px';
-        closeButton.style.cursor = 'pointer';
-        closeButton.addEventListener('click', () => favoritesContainer.remove());
-
-        favoritesContainer.appendChild(closeButton);
-        document.body.appendChild(favoritesContainer);
+        this.updateFavoritesDisplay();
     },
 
     // Fetch weather for a favorite city
@@ -131,12 +173,24 @@ const Favorites = {
         console.log(`Extracted City: ${cityName}, Country: ${country}`);
 
         // Update input field
-        document.getElementById('cityInput').value = city;
+        const cityInput = document.getElementById('cityInput');
+        if (cityInput) {
+            cityInput.value = city;
+        }
 
-        // Fetch weather data
-        WeatherAPI.fetchWeatherData('/weather', {city: cityName, country, unit});
+        // Update app state if WeatherApp is available
+        if (typeof WeatherApp !== 'undefined') {
+            WeatherApp.updateState({
+                lastCity: cityName,
+                lastCountry: country
+            });
+        }
 
-        // Also fetch forecast
-        ForecastService.fetchForecast(cityName, country);
+        // Fetch weather data if WeatherAPI is available
+        if (typeof WeatherAPI !== 'undefined') {
+            WeatherAPI.fetchWeatherData('/weather', {city: cityName, country, unit});
+        } else {
+            console.error('WeatherAPI not available');
+        }
     }
 };

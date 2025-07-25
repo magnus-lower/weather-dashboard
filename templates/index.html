@@ -40,12 +40,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="favorites-icon" id="favoritesIcon" role="button" aria-label="Vis favoritter" tabindex="0">
-                        <!-- Star Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
-                    </div>
                     <a href="https://magnuslow.com/projects.html" class="back-to-site-btn" rel="noopener noreferrer">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m12 19-7-7 7-7"></path>
@@ -66,6 +60,23 @@
                             <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
                         </svg>
                     </button>
+                    <div class="favorites-dropdown-container">
+                        <button id="favoritesBtn" type="button" class="favorites-btn" title="Vis favoritter" aria-label="Vis favoritter">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        </button>
+                        <div class="favorites-dropdown" id="favoritesDropdown">
+                            <div class="favorites-header">
+                                <span data-en="Favorites" data-no="Favoritter">Favoritter</span>
+                            </div>
+                            <div class="favorites-list" id="favoritesList">
+                                <div class="no-favorites" data-en="No favorites added yet" data-no="Ingen favoritter lagt til ennå">
+                                    Ingen favoritter lagt til ennå
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <ul id="citySuggestions" class="suggestions-list" role="listbox"></ul>
             </div>

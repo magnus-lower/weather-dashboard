@@ -64,17 +64,28 @@ const LocationService = {
 
         if (lat !== null && lon !== null) {
             console.log('Fetching weather for provided coordinates:', lat, lon);
-            UIUtils.showLoadingSpinner();
-            WeatherAPI.reverseGeocode(lat, lon, unit);
+            if (typeof UIUtils !== 'undefined') {
+                UIUtils.showLoadingSpinner();
+            }
+            if (typeof WeatherAPI !== 'undefined') {
+                WeatherAPI.reverseGeocode(lat, lon, unit);
+            }
             return;
         }
 
         if (!navigator.geolocation) {
-            alert('Geolokasjon støttes ikke av denne nettleseren. Vennligst skriv inn et bynavn manuelt.');
+            const lang = localStorage.getItem('language') || 'no';
+            const message = lang === 'no' 
+                ? 'Geolokasjon støttes ikke av denne nettleseren. Vennligst skriv inn et bynavn manuelt.'
+                : 'Geolocation is not supported by this browser. Please enter a city name manually.';
+            alert(message);
             return;
         }
 
-        UIUtils.showLoadingSpinner();
+        if (typeof UIUtils !== 'undefined') {
+            UIUtils.showLoadingSpinner();
+        }
+        
         console.log('Requesting user location...');
         
         navigator.geolocation.getCurrentPosition(
@@ -83,16 +94,28 @@ const LocationService = {
                 const longitude = position.coords.longitude;
 
                 // Update app state
-                WeatherApp.updateState({
-                    lastLat: latitude,
-                    lastLon: longitude
-                });
+                if (typeof WeatherApp !== 'undefined') {
+                    WeatherApp.updateState({
+                        lastLat: latitude,
+                        lastLon: longitude
+                    });
+                }
 
                 console.log('Fetched geolocation:', latitude, longitude);
-                WeatherAPI.reverseGeocode(latitude, longitude, unit);
+                
+                if (typeof WeatherAPI !== 'undefined') {
+                    WeatherAPI.reverseGeocode(latitude, longitude, unit);
+                } else {
+                    console.error('WeatherAPI not available');
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.hideLoadingSpinner();
+                    }
+                }
             },
             (error) => {
-                UIUtils.hideLoadingSpinner();
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.hideLoadingSpinner();
+                }
                 this.handleGeolocationError(error);
             },
             {
@@ -119,29 +142,29 @@ const LocationService = {
 
     // Handle geolocation errors (for explicit user requests)
     handleGeolocationError(error) {
-        let message = 'Kunne ikke hente din lokasjon. ';
+        const lang = localStorage.getItem('language') || 'no';
+        let message = lang === 'no' ? 'Kunne ikke hente din lokasjon. ' : 'Could not get your location. ';
 
         switch(error.code) {
             case error.PERMISSION_DENIED:
-                message += 'Du har nektet tilgang til lokasjon. For å bruke denne funksjonen:\n\n';
-                message += '1. Klikk på lokasjons-ikonet i adresselinjen\n';
-                message += '2. Velg "Tillat" for denne nettsiden\n';
-                message += '3. Oppdater siden og prøv igjen\n\n';
-                message += 'Alternativt kan du skrive inn et bynavn manuelt.';
+                message += lang === 'no' 
+                    ? 'Du har nektet tilgang til lokasjon. For å bruke denne funksjonen:\n\n1. Klikk på lokasjons-ikonet i adresselinjen\n2. Velg "Tillat" for denne nettsiden\n3. Oppdater siden og prøv igjen\n\nAlternativt kan du skrive inn et bynavn manuelt.'
+                    : 'You have denied location access. To use this feature:\n\n1. Click the location icon in the address bar\n2. Select "Allow" for this website\n3. Refresh the page and try again\n\nAlternatively, you can enter a city name manually.';
                 break;
             case error.POSITION_UNAVAILABLE:
-                message += 'Lokasjonsdata er ikke tilgjengelig fra enheten din. ';
-                message += 'Dette kan skje hvis GPS er slått av eller du er innendørs. ';
-                message += 'Prøv å gå til et område med bedre GPS-signal, eller skriv inn et bynavn manuelt.';
+                message += lang === 'no' 
+                    ? 'Lokasjonsdata er ikke tilgjengelig fra enheten din. Dette kan skje hvis GPS er slått av eller du er innendørs. Prøv å gå til et område med bedre GPS-signal, eller skriv inn et bynavn manuelt.'
+                    : 'Location data is not available from your device. This can happen if GPS is turned off or you are indoors. Try going to an area with better GPS signal, or enter a city name manually.';
                 break;
             case error.TIMEOUT:
-                message += 'Lokasjonsforespørselen tok for lang tid. ';
-                message += 'Dette kan skyldes dårlig GPS-signal eller at enheten bruker lang tid på å finne posisjonen. ';
-                message += 'Prøv igjen eller skriv inn et bynavn manuelt.';
+                message += lang === 'no' 
+                    ? 'Lokasjonsforespørselen tok for lang tid. Dette kan skyldes dårlig GPS-signal eller at enheten bruker lang tid på å finne posisjonen. Prøv igjen eller skriv inn et bynavn manuelt.'
+                    : 'Location request took too long. This may be due to poor GPS signal or the device taking a long time to find the position. Try again or enter a city name manually.';
                 break;
             default:
-                message += 'En ukjent feil oppstod ved henting av lokasjon. ';
-                message += 'Vennligst prøv igjen senere eller skriv inn et bynavn manuelt.';
+                message += lang === 'no' 
+                    ? 'En ukjent feil oppstod ved henting av lokasjon. Vennligst prøv igjen senere eller skriv inn et bynavn manuelt.'
+                    : 'An unknown error occurred while getting location. Please try again later or enter a city name manually.';
                 break;
         }
 
@@ -151,23 +174,36 @@ const LocationService = {
 
     // Refresh weather data for last known location
     refreshWeatherData() {
+        if (typeof WeatherApp === 'undefined') {
+            console.error('WeatherApp not available');
+            return;
+        }
+
         const state = WeatherApp.getState();
         const unit = 'metric';
 
         if (state.lastCity && state.lastCountry) {
-            WeatherAPI.fetchWeatherData('/weather', {
-                city: state.lastCity,
-                country: state.lastCountry,
-                unit
-            });
+            if (typeof WeatherAPI !== 'undefined') {
+                WeatherAPI.fetchWeatherData('/weather', {
+                    city: state.lastCity,
+                    country: state.lastCountry,
+                    unit
+                });
+            }
         } else if (state.lastLat !== null && state.lastLon !== null) {
-            WeatherAPI.fetchWeatherData('/weather_by_coords', {
-                lat: state.lastLat,
-                lon: state.lastLon,
-                unit
-            });
+            if (typeof WeatherAPI !== 'undefined') {
+                WeatherAPI.fetchWeatherData('/weather_by_coords', {
+                    lat: state.lastLat,
+                    lon: state.lastLon,
+                    unit
+                });
+            }
         } else {
-            alert('Ingen lokasjons- eller bydata tilgjengelig. Vennligst skriv inn et bynavn eller tillat tilgang til lokasjon.');
+            const lang = localStorage.getItem('language') || 'no';
+            const message = lang === 'no' 
+                ? 'Ingen lokasjons- eller bydata tilgjengelig. Vennligst skriv inn et bynavn eller tillat tilgang til lokasjon.'
+                : 'No location or city data available. Please enter a city name or allow location access.';
+            alert(message);
         }
     }
 };
