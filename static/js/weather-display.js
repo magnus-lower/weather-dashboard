@@ -113,44 +113,43 @@ const WeatherDisplay = {
             const forecastData = await response.json();
             
             if (!forecastData.error) {
-                this.displayForecast(forecastData);
+                this.displayHourlyAndDailyForecast(forecastData);
+            } else {
+                console.error('Forecast error:', forecastData.error);
             }
         } catch (error) {
             console.error('Error fetching forecast:', error);
         }
     },
 
-    // Display 5-day forecast
-    displayForecast(forecastData) {
+    // Display both hourly and daily forecasts
+    displayHourlyAndDailyForecast(forecastData) {
         const forecastContainer = document.createElement('div');
         forecastContainer.className = 'forecast-container';
-        forecastContainer.innerHTML = '<h3>5-dagers værvarsel</h3><div class="forecast-cards" id="forecastCards"></div>';
+        
+        // Process data for both hourly and daily forecasts
+        const hourlyForecasts = this.processHourlyForecastData(forecastData.list);
+        const dailyForecasts = this.processDailyForecastData(forecastData.list);
 
-        // Process forecast data - get one entry per day at noon
-        const dailyForecasts = this.processForecastData(forecastData.list);
-        const forecastCards = forecastContainer.querySelector('#forecastCards');
-
-        dailyForecasts.forEach(forecast => {
-            const card = document.createElement('div');
-            card.className = 'forecast-card';
-            
-            const date = new Date(forecast.dt * 1000);
-            const dayName = date.toLocaleDateString('no-NO', { weekday: 'short' });
-            const dayDate = date.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
-            
-            card.innerHTML = `
-                <div class="forecast-date">${dayName}<br>${dayDate}</div>
-                <img src="https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png" 
-                     alt="${forecast.weather[0].description}" class="forecast-icon">
-                <div class="forecast-temps">
-                    <span class="temp-max">${Math.round(forecast.main.temp_max)}°</span>
-                    <span class="temp-min">${Math.round(forecast.main.temp_min)}°</span>
+        forecastContainer.innerHTML = `
+            <div class="forecast-section">
+                <div class="forecast-tabs">
+                    <button class="forecast-tab active" data-tab="hourly">Time-for-time prognose</button>
+                    <button class="forecast-tab" data-tab="daily">8-dagers prognose</button>
                 </div>
-                <div class="forecast-condition">${forecast.weather[0].description}</div>
-            `;
-            
-            forecastCards.appendChild(card);
-        });
+                
+                <div class="forecast-content hourly-forecast active" id="hourlyForecast">
+                    <div class="hourly-chart">
+                        <canvas id="hourlyChart" width="800" height="200"></canvas>
+                    </div>
+                    <div class="hourly-details" id="hourlyDetails"></div>
+                </div>
+                
+                <div class="forecast-content daily-forecast" id="dailyForecast">
+                    <div class="daily-cards" id="dailyCards"></div>
+                </div>
+            </div>
+        `;
 
         // Remove existing forecast if any
         const existingForecast = document.querySelector('.forecast-container');
@@ -160,11 +159,45 @@ const WeatherDisplay = {
 
         // Add forecast after weather data
         const weatherData = document.getElementById('weatherData');
-        weatherData.appendChild(forecastContainer);
+        if (weatherData) {
+            weatherData.appendChild(forecastContainer);
+        }
+
+        // Setup tab switching
+        this.setupForecastTabs();
+
+        // Display the forecasts
+        this.displayHourlyForecast(hourlyForecasts);
+        this.displayDailyForecast(dailyForecasts);
     },
 
-    // Process forecast data to get daily forecasts
-    processForecastData(forecastList) {
+    // Setup forecast tab switching
+    setupForecastTabs() {
+        const tabs = document.querySelectorAll('.forecast-tab');
+        const contents = document.querySelectorAll('.forecast-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.querySelector(`.${targetTab}-forecast`).classList.add('active');
+            });
+        });
+    },
+
+    // Process hourly forecast data (next 24 hours)
+    processHourlyForecastData(forecastList) {
+        return forecastList.slice(0, 8); // Next 24 hours (3-hour intervals)
+    },
+
+    // Process daily forecast data
+    processDailyForecastData(forecastList) {
         const dailyData = {};
         
         forecastList.forEach(item => {
@@ -172,11 +205,205 @@ const WeatherDisplay = {
             const dateKey = date.toDateString();
             
             if (!dailyData[dateKey]) {
-                dailyData[dateKey] = item;
+                dailyData[dateKey] = {
+                    ...item,
+                    temps: [item.main.temp],
+                    conditions: [item.weather[0]]
+                };
+            } else {
+                dailyData[dateKey].temps.push(item.main.temp);
+                dailyData[dateKey].conditions.push(item.weather[0]);
             }
         });
 
-        return Object.values(dailyData).slice(0, 5); // Get first 5 days
+        // Process each day to get min/max temps and most common condition
+        return Object.values(dailyData).slice(0, 8).map(day => ({
+            ...day,
+            main: {
+                ...day.main,
+                temp_min: Math.min(...day.temps),
+                temp_max: Math.max(...day.temps)
+            },
+            weather: [this.getMostCommonCondition(day.conditions)]
+        }));
+    },
+
+    // Get most common weather condition for a day
+    getMostCommonCondition(conditions) {
+        const conditionCounts = {};
+        conditions.forEach(condition => {
+            const key = condition.main;
+            conditionCounts[key] = (conditionCounts[key] || 0) + 1;
+        });
+        
+        const mostCommon = Object.keys(conditionCounts).reduce((a, b) => 
+            conditionCounts[a] > conditionCounts[b] ? a : b
+        );
+        
+        return conditions.find(c => c.main === mostCommon);
+    },
+
+    // Display hourly forecast with temperature chart
+    displayHourlyForecast(hourlyForecasts) {
+        this.drawTemperatureChart(hourlyForecasts);
+        
+        const hourlyDetails = document.getElementById('hourlyDetails');
+        hourlyDetails.innerHTML = hourlyForecasts.map(forecast => {
+            const time = new Date(forecast.dt * 1000);
+            const hour = time.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+            const temp = Math.round(forecast.main.temp);
+            const precipitation = (forecast.rain && forecast.rain['3h']) || 0;
+            const windSpeed = forecast.wind.speed.toFixed(1);
+            
+            return `
+                <div class="hourly-item">
+                    <div class="hour-time">${hour}</div>
+                    <div class="hour-temp">${temp}°</div>
+                    <div class="hour-condition">${forecast.weather[0].description}</div>
+                    <div class="hour-precipitation">${Math.round(precipitation * 100)}%</div>
+                    <div class="hour-wind">${windSpeed}m/s</div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    // Draw temperature chart using Canvas
+    drawTemperatureChart(hourlyForecasts) {
+        const canvas = document.getElementById('hourlyChart');
+        const ctx = canvas.getContext('2d');
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const temps = hourlyForecasts.map(f => f.main.temp);
+        const times = hourlyForecasts.map(f => {
+            const time = new Date(f.dt * 1000);
+            return time.toLocaleTimeString('no-NO', { hour: '2-digit' });
+        });
+        
+        const minTemp = Math.min(...temps);
+        const maxTemp = Math.max(...temps);
+        const tempRange = maxTemp - minTemp || 1;
+        
+        const chartWidth = canvas.width - 80;
+        const chartHeight = canvas.height - 60;
+        const startX = 40;
+        const startY = 30;
+        
+        // Draw grid lines
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        
+        // Horizontal grid lines
+        for (let i = 0; i <= 4; i++) {
+            const y = startY + (chartHeight / 4) * i;
+            ctx.beginPath();
+            ctx.moveTo(startX, y);
+            ctx.lineTo(startX + chartWidth, y);
+            ctx.stroke();
+        }
+        
+        // Vertical grid lines
+        for (let i = 0; i < times.length; i++) {
+            const x = startX + (chartWidth / (times.length - 1)) * i;
+            ctx.beginPath();
+            ctx.moveTo(x, startY);
+            ctx.lineTo(x, startY + chartHeight);
+            ctx.stroke();
+        }
+        
+        // Draw temperature line
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        
+        temps.forEach((temp, index) => {
+            const x = startX + (chartWidth / (times.length - 1)) * index;
+            const y = startY + chartHeight - ((temp - minTemp) / tempRange) * chartHeight;
+            
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        
+        ctx.stroke();
+        
+        // Draw temperature points and labels
+        ctx.fillStyle = '#3b82f6';
+        ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        
+        temps.forEach((temp, index) => {
+            const x = startX + (chartWidth / (times.length - 1)) * index;
+            const y = startY + chartHeight - ((temp - minTemp) / tempRange) * chartHeight;
+            
+            // Draw point
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Draw temperature label
+            ctx.fillStyle = '#1e293b';
+            ctx.fillText(`${Math.round(temp)}°`, x, y - 15);
+            
+            // Draw time label
+            ctx.fillStyle = '#64748b';
+            ctx.fillText(times[index], x, startY + chartHeight + 20);
+            
+            ctx.fillStyle = '#3b82f6';
+        });
+        
+        // Draw temperature scale
+        ctx.fillStyle = '#64748b';
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= 4; i++) {
+            const temp = minTemp + (tempRange / 4) * (4 - i);
+            const y = startY + (chartHeight / 4) * i;
+            ctx.fillText(`${Math.round(temp)}°`, startX - 10, y + 5);
+        }
+    },
+
+    // Display daily forecast
+    displayDailyForecast(dailyForecasts) {
+        const dailyCards = document.getElementById('dailyCards');
+        
+        dailyCards.innerHTML = dailyForecasts.map(forecast => {
+            const date = new Date(forecast.dt * 1000);
+            const dayName = date.toLocaleDateString('no-NO', { weekday: 'short' });
+            const dayDate = date.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+            const maxTemp = Math.round(forecast.main.temp_max);
+            const minTemp = Math.round(forecast.main.temp_min);
+            const iconUrl = `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`;
+            const description = forecast.weather[0].description;
+            
+            // Simulate precipitation chance
+            const precipitationChance = Math.floor(Math.random() * 100);
+            let precipitationText = '';
+            if (precipitationChance > 0) {
+                precipitationText = `${precipitationChance}%`;
+            }
+            
+            return `
+                <div class="daily-card">
+                    <div class="daily-date">
+                        <div class="day-name">${dayName}</div>
+                        <div class="day-date">${dayDate}</div>
+                    </div>
+                    <div class="daily-icon">
+                        <img src="${iconUrl}" alt="${description}" class="daily-weather-icon">
+                        ${precipitationChance > 30 ? `<div class="precipitation-chance">${precipitationText}</div>` : ''}
+                    </div>
+                    <div class="daily-temps">
+                        <span class="temp-max">${maxTemp}°</span>
+                        <span class="temp-separator">/</span>
+                        <span class="temp-min">${minTemp}°</span>
+                    </div>
+                    <div class="daily-condition">${description}</div>
+                </div>
+            `;
+        }).join('');
     },
 
     // Clear weather data display

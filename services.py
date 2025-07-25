@@ -42,9 +42,19 @@ class WeatherAPIService:
             data = response.json()
 
             # Check if it's an error response from OpenWeatherMap
-            if 'cod' in data and data['cod'] != 200:
-                error_msg = data.get('message', 'Ukjent feil fra vær-API')
-                return {'error': error_msg}
+            # Handle both string and integer cod values
+            if 'cod' in data:
+                cod_value = data['cod']
+                # Convert to int if it's a string
+                if isinstance(cod_value, str):
+                    try:
+                        cod_value = int(cod_value)
+                    except ValueError:
+                        pass
+                
+                if cod_value != 200:
+                    error_msg = data.get('message', 'Ukjent feil fra vær-API')
+                    return {'error': error_msg}
 
             return data
 
