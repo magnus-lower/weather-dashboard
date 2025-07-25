@@ -50,15 +50,15 @@ const WeatherDisplay = {
                 
                 <div class="sun-times">
                     <div class="sun-item">
-                        <span class="sun-icon">🌅</span>
-                        <div>
+                        <div class="sun-icon sunrise"></div>
+                        <div class="sun-info">
                             <div class="sun-label">Soloppgang</div>
                             <div class="sun-time">${sunrise}</div>
                         </div>
                     </div>
                     <div class="sun-item">
-                        <span class="sun-icon">🌇</span>
-                        <div>
+                        <div class="sun-icon sunset"></div>
+                        <div class="sun-info">
                             <div class="sun-label">Solnedgang</div>
                             <div class="sun-time">${sunset}</div>
                         </div>
