@@ -290,8 +290,8 @@ const WeatherDisplay = {
                     <div class="hour-time">${hour}</div>
                     <div class="hour-temp">${temp}°</div>
                     <div class="hour-condition">${forecast.weather[0].description}</div>
-                    <div class="hour-precipitation">${Math.round(precipitation * 100)}%</div>
-                    <div class="hour-wind">${windSpeed}m/s</div>
+                    <div class="hour-precipitation">Nedbør: ${Math.round(precipitation * 100)}%</div>
+                    <div class="hour-wind">Vind: ${windSpeed}m/s</div>
                 </div>
             `;
         }).join('');

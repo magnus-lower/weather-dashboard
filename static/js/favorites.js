@@ -46,6 +46,11 @@ const Favorites = {
     openFavoritesDropdown() {
         const dropdown = document.getElementById('favoritesDropdown');
         if (dropdown) {
+            // Close city suggestions when opening favorites
+            if (typeof CitySearch !== 'undefined' && CitySearch.clearCitySuggestions) {
+                CitySearch.clearCitySuggestions();
+            }
+            
             this.updateFavoritesDisplay();
             dropdown.classList.add('visible');
         }
