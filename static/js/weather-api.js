@@ -70,13 +70,30 @@ const WeatherAPI = {
             });
     },
 
-    // Fetch city suggestions for autocomplete
+    // Fetch city suggestions for autocomplete with improved caching and deduplication
     fetchCitySuggestions(query) {
         if (!query || query.length < 2) {
             return Promise.resolve([]);
         }
 
-        // Add request throttling
+        // Enhanced request throttling and caching with better cache keys
+        const normalizedQuery = query.toLowerCase().trim();
+        const cacheKey = `suggestions_${normalizedQuery}`;
+        
+        // Check cache first (suggestions are cached for 10 minutes for better performance)
+        if (this.suggestionCache && this.suggestionCache[cacheKey]) {
+            const cachedData = this.suggestionCache[cacheKey];
+            if (Date.now() - cachedData.timestamp < 600000) { // 10 minutes
+                return Promise.resolve(cachedData.data);
+            }
+        }
+
+        // Initialize cache if not exists
+        if (!this.suggestionCache) {
+            this.suggestionCache = {};
+        }
+
+        // More aggressive request throttling for better results
         if (this.lastRequestTime && Date.now() - this.lastRequestTime < 500) {
             clearTimeout(this.throttleTimeout);
             return new Promise((resolve) => {
@@ -94,9 +111,83 @@ const WeatherAPI = {
                 }
                 return response.json();
             })
+            .then(data => {
+                // Additional client-side deduplication and filtering
+                const filteredData = this.filterAndDeduplicateSuggestions(data, normalizedQuery);
+                
+                // Cache the filtered results
+                this.suggestionCache[cacheKey] = {
+                    data: filteredData,
+                    timestamp: Date.now()
+                };
+                
+                // Clean old cache entries more aggressively (keep only last 15 searches)
+                const cacheKeys = Object.keys(this.suggestionCache);
+                if (cacheKeys.length > 15) {
+                    const sortedKeys = cacheKeys.sort((a, b) => 
+                        this.suggestionCache[a].timestamp - this.suggestionCache[b].timestamp
+                    );
+                    // Remove oldest entries
+                    for (let i = 0; i < cacheKeys.length - 15; i++) {
+                        delete this.suggestionCache[sortedKeys[i]];
+                    }
+                }
+                
+                return filteredData;
+            })
             .catch(error => {
                 console.error('Error fetching city suggestions:', error);
                 return [];
             });
+    },
+
+    // Client-side filtering and deduplication
+    filterAndDeduplicateSuggestions(suggestions, query) {
+        if (!suggestions || suggestions.length === 0) return [];
+
+        const seen = new Set();
+        const filtered = [];
+        const maxPerCountry = 2; // Limit similar results per country
+        const countryCount = {};
+
+        // Sort suggestions by relevance on client side as well
+        suggestions.sort((a, b) => {
+            // Exact matches first
+            const aExact = a.name.toLowerCase().startsWith(query);
+            const bExact = b.name.toLowerCase().startsWith(query);
+            if (aExact !== bExact) return bExact - aExact;
+
+            // Norwegian cities prioritized
+            if (a.country === 'NO' && b.country !== 'NO') return -1;
+            if (b.country === 'NO' && a.country !== 'NO') return 1;
+
+            // Population (if available)
+            const aPop = a.population || 0;
+            const bPop = b.population || 0;
+            if (aPop !== bPop) return bPop - aPop;
+
+            // Shorter names
+            return a.name.length - b.name.length;
+        });
+
+        for (const suggestion of suggestions) {
+            const key = `${suggestion.name.toLowerCase()}_${suggestion.country}_${suggestion.state || ''}`;
+            const country = suggestion.country;
+
+            // Skip exact duplicates
+            if (seen.has(key)) continue;
+
+            // Limit results per country to ensure diversity
+            if (countryCount[country] >= maxPerCountry) continue;
+
+            seen.add(key);
+            countryCount[country] = (countryCount[country] || 0) + 1;
+            filtered.push(suggestion);
+
+            // Limit total results
+            if (filtered.length >= 8) break;
+        }
+
+        return filtered;
     }
 };

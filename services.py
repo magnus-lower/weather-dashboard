@@ -89,27 +89,113 @@ class WeatherAPIService:
             logger.error(f"Unexpected error when fetching weather data: {e}")
             return {'error': 'En uventet feil oppstod. Prøv igjen senere.'}
 
-    def fetch_city_suggestions(self, query: str, limit: int = 5) -> List[Dict]:
-        """Fetch city suggestions for autocomplete"""
+    def fetch_city_suggestions(self, query: str, limit: int = 8) -> List[Dict]:
+        """Fetch city suggestions for autocomplete with improved logic"""
         try:
-            # Use the geocoding API for city suggestions
-            url = f"http://api.openweathermap.org/geo/1.0/direct?q={query}&limit={limit}&appid={self.api_key}"
+            # Use the geocoding API for city suggestions with higher limit for better filtering
+            url = f"http://api.openweathermap.org/geo/1.0/direct?q={query}&limit=25&appid={self.api_key}"
             response = self.session.get(url)
             response.raise_for_status()
             data = response.json()
 
             suggestions = []
+            seen_cities = set()  # Track unique city-country combinations
+            seen_names = set()   # Track city names to avoid too many duplicates
+            
+            # Prioritize by population and importance
+            data.sort(key=lambda x: (
+                not x.get('name', '').lower().startswith(query.lower()),  # Exact matches first
+                x.get('country', '') != 'NO',  # Norwegian cities prioritized
+                -(x.get('population', 0) or 0),  # Higher population first
+                len(x.get('name', ''))  # Shorter names first
+            ))
+            
             for item in data:
+                city_name = item.get('name', '')
+                country = item.get('country', '')
+                state = item.get('state', '')
+                
+                # Skip if we don't have essential data
+                if not city_name or not country:
+                    continue
+                
+                # Create unique key for exact deduplication
+                unique_key = f"{city_name.lower()}_{country.lower()}_{state.lower()}"
+                
+                # Skip exact duplicates
+                if unique_key in seen_cities:
+                    continue
+                seen_cities.add(unique_key)
+                
+                # Limit similar city names to avoid repetition
+                city_name_lower = city_name.lower()
+                if city_name_lower in seen_names:
+                    # Only allow if it's a significantly different location (different country)
+                    existing_countries = [s['country'] for s in suggestions if s['name'].lower() == city_name_lower]
+                    if country in existing_countries:
+                        continue
+                
+                seen_names.add(city_name_lower)
+                
+                # Prioritize exact matches at the beginning
+                is_exact_match = city_name.lower().startswith(query.lower())
+                
+                # Calculate relevance score
+                relevance_score = 0
+                if is_exact_match:
+                    relevance_score += 100
+                if country == 'NO':
+                    relevance_score += 50
+                if item.get('population'):
+                    relevance_score += min(item.get('population', 0) / 10000, 20)  # Max 20 points for population
+                if len(city_name) <= 8:  # Shorter names are often more important
+                    relevance_score += 10
+                
+                # Format display name
+                display_name = city_name
+                if state and state != city_name:
+                    display_name = f"{city_name}, {state}, {country}"
+                else:
+                    display_name = f"{city_name}, {country}"
+                
                 suggestion = {
-                    'name': item.get('name', ''),
-                    'country': item.get('country', ''),
-                    'state': item.get('state', ''),
+                    'name': city_name,
+                    'country': country,
+                    'state': state,
                     'lat': item.get('lat'),
-                    'lon': item.get('lon')
+                    'lon': item.get('lon'),
+                    'is_exact_match': is_exact_match,
+                    'relevance_score': relevance_score,
+                    'population': item.get('population', 0),
+                    'display_name': display_name
                 }
                 suggestions.append(suggestion)
-
-            return suggestions
+            
+            # Sort by relevance score
+            suggestions.sort(key=lambda x: x['relevance_score'], reverse=True)
+            
+            # Ensure diversity - if we have too many from same country, mix it up
+            final_suggestions = []
+            country_count = {}
+            
+            for suggestion in suggestions:
+                country = suggestion['country']
+                if country_count.get(country, 0) < 3 or len(final_suggestions) < limit // 2:
+                    final_suggestions.append(suggestion)
+                    country_count[country] = country_count.get(country, 0) + 1
+                    
+                if len(final_suggestions) >= limit:
+                    break
+            
+            # If we still need more suggestions and have some left, add them
+            if len(final_suggestions) < limit:
+                for suggestion in suggestions:
+                    if suggestion not in final_suggestions:
+                        final_suggestions.append(suggestion)
+                        if len(final_suggestions) >= limit:
+                            break
+            
+            return final_suggestions[:limit]
 
         except Exception as e:
             logger.error(f"Error fetching city suggestions: {e}")
