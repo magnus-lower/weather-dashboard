@@ -15,8 +15,15 @@ const WeatherApp = {
     },
 
     // Initialize the application
-    init() {
+    async init() {
         console.log('Initializing Weather Dashboard...');
+
+        // Initialize language and settings first
+        const { initLanguageSwitcher } = await import('./language.js');
+        const { initSettingsPanel } = await import('./settings-panel.js');
+        
+        initLanguageSwitcher();
+        initSettingsPanel();
 
         // Load and initialize modules
         Favorites.init();
@@ -48,51 +55,16 @@ const WeatherApp = {
             });
         }
 
-        // Theme toggle
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
-                this.toggleTheme();
-            });
-        }
-
-        // Load saved theme
+        // Load saved theme (removed individual theme toggle since it's now in settings panel)
         this.loadSavedTheme();
     },
 
-    // Toggle between light and dark theme
-    toggleTheme() {
-        const body = document.body;
-        const sunIcon = document.getElementById('sunIcon');
-        const moonIcon = document.getElementById('moonIcon');
-        
-        body.classList.toggle('dark-mode');
-        
-        if (body.classList.contains('dark-mode')) {
-            sunIcon.style.display = 'none';
-            moonIcon.style.display = 'block';
-            localStorage.setItem('theme', 'dark');
-        } else {
-            sunIcon.style.display = 'block';
-            moonIcon.style.display = 'none';
-            localStorage.setItem('theme', 'light');
-        }
-    },
-
-    // Load saved theme from localStorage
+    // Load saved theme from localStorage (simplified since dark mode is handled in settings-panel)
     loadSavedTheme() {
-        const savedTheme = localStorage.getItem('theme');
-        const sunIcon = document.getElementById('sunIcon');
-        const moonIcon = document.getElementById('moonIcon');
-        
-        if (savedTheme === 'dark') {
+        const savedTheme = localStorage.getItem('darkMode');
+        if (savedTheme === 'true') {
             document.body.classList.add('dark-mode');
-            sunIcon.style.display = 'none';
-            moonIcon.style.display = 'block';
-        } else {
-            document.body.classList.remove('dark-mode');
-            sunIcon.style.display = 'block';
-            moonIcon.style.display = 'none';
+            document.documentElement.classList.add('dark-mode');
         }
     },
 
@@ -101,7 +73,9 @@ const WeatherApp = {
         const city = document.getElementById('cityInput').value.trim();
 
         if (!city) {
-            alert('Vennligst skriv inn et bynavn.');
+            const lang = localStorage.getItem('language') || 'no';
+            const message = lang === 'no' ? 'Vennligst skriv inn et bynavn.' : 'Please enter a city name.';
+            alert(message);
             return;
         }
 

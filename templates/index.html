@@ -6,23 +6,40 @@
     <meta name="description" content="Et værvarsel dashboard som viser værforhold for byer over hele verden">
     <title>Værdashboard - Sanntids værforhold</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 </head>
 <body>
     <div class="app-wrapper">
         <!-- Main Container -->
         <div class="container">
             <div class="header">
-                <h1>Værdashbord</h1>
+                <h1 data-en="Weather Dashboard" data-no="Værdashbord">Værdashbord</h1>
                 <div class="header-actions">
-                    <button id="themeToggle" class="theme-toggle" title="Bytt mørk/lys modus" aria-label="Bytt tema">
-                        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="5"></circle>
-                            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
-                        </svg>
-                        <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                        </svg>
-                    </button>
+                    <div class="settings-panel">
+                        <button class="settings-toggle" aria-label="Toggle settings">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <div class="settings-dropdown" id="settings-dropdown">
+                            <div class="settings-item">
+                                <div class="settings-item-label">
+                                    <i class="fas fa-globe"></i> <span data-en="Language" data-no="Språk">Språk</span>
+                                </div>
+                                <div class="language-toggle" id="language-toggle">
+                                    <img src="https://flagcdn.com/24x18/gb.png" class="flag-icon" id="en-flag" alt="English">
+                                    <img src="https://flagcdn.com/24x18/no.png" class="flag-icon" id="no-flag" alt="Norwegian">
+                                </div>
+                            </div>
+                            <div class="settings-item">
+                                <div class="settings-item-label">
+                                    <i class="fas fa-moon"></i> <span id="theme-mode-text" data-en="Dark Mode" data-no="Mørk modus">Mørk modus</span>
+                                </div>
+                                <label class="theme-toggle">
+                                    <input type="checkbox" id="dark-mode-toggle">
+                                    <span class="theme-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                     <div class="favorites-icon" id="favoritesIcon" role="button" aria-label="Vis favoritter" tabindex="0">
                         <!-- Star Icon -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -34,7 +51,7 @@
                             <path d="m12 19-7-7 7-7"></path>
                             <path d="m19 12H5"></path>
                         </svg>
-                        Tilbake til nettsiden
+                        <span data-en="Back to website" data-no="Tilbake til nettsiden">Tilbake til nettsiden</span>
                     </a>
                 </div>
             </div>
@@ -70,6 +87,8 @@
     <script src="/static/js/location-service.js"></script>
     <script src="/static/js/favorites.js"></script>
     <script src="/static/js/city-search.js"></script>
+    <script type="module" src="/static/js/settings-panel.js"></script>
+    <script type="module" src="/static/js/language.js"></script>
     <script src="/static/js/main.js"></script>
 </body>
 </html>
