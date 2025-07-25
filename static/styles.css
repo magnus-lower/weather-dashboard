@@ -843,10 +843,31 @@ body.dark-mode .back-to-site-btn:hover {
 }
 
 .hourly-details {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    display: flex;
+    overflow-x: auto;
     gap: 20px;
     margin-top: 24px;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) rgba(255, 255, 255, 0.1);
+}
+
+.hourly-details::-webkit-scrollbar {
+    height: 6px;
+}
+
+.hourly-details::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.hourly-details::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.hourly-details::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover);
 }
 
 .hourly-item {
@@ -861,6 +882,8 @@ body.dark-mode .back-to-site-btn:hover {
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
+    min-width: 120px;
+    flex-shrink: 0;
 }
 
 .hourly-item::before {
@@ -1147,12 +1170,12 @@ body.dark-mode .precipitation-chance {
     }
     
     .hourly-details {
-        grid-template-columns: repeat(3, 1fr);
         gap: 16px;
     }
     
     .hourly-item {
         padding: 16px 12px;
+        min-width: 100px;
     }
     
     .hour-temp {
@@ -1198,7 +1221,6 @@ body.dark-mode .precipitation-chance {
     }
     
     .hourly-details {
-        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
     
