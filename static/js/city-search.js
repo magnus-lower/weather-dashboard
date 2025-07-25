@@ -17,6 +17,19 @@ const CitySearch = {
             // Legg til keyboard navigation for suggestions
             cityInput.addEventListener('keydown', (event) => this.handleKeyNavigation(event));
         }
+
+        // Hide suggestions when clicking outside the search area
+        document.addEventListener('click', (event) => {
+            const cityInput = document.getElementById('cityInput');
+            const suggestionsList = document.getElementById('citySuggestions');
+            
+            // Check if click is outside both the input field and suggestions dropdown
+            if (cityInput && suggestionsList &&
+                !cityInput.contains(event.target) && 
+                !suggestionsList.contains(event.target)) {
+                this.clearCitySuggestions();
+            }
+        });
     },
 
     // Handle city input for autocomplete
