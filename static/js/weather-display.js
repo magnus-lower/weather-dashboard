@@ -162,7 +162,7 @@ const WeatherDisplay = {
             <div class="forecast-section">
                 <div class="forecast-tabs">
                     <button class="forecast-tab active" data-tab="hourly">Time-for-time prognose</button>
-                    <button class="forecast-tab" data-tab="daily">8-dagers prognose</button>
+                    <button class="forecast-tab" data-tab="daily">5-dagers prognose</button>
                 </div>
                 
                 <div class="forecast-content hourly-forecast active" id="hourlyForecast">
@@ -246,7 +246,7 @@ const WeatherDisplay = {
         });
 
         // Process each day to get min/max temps and most common condition
-        return Object.values(dailyData).slice(0, 8).map(day => ({
+        return Object.values(dailyData).slice(0, 5).map(day => ({
             ...day,
             main: {
                 ...day.main,

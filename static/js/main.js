@@ -39,6 +39,15 @@ const WeatherApp = {
 
     // Set up main application event listeners
     setupEventListeners() {
+        // Make header title clickable to refresh page
+        const headerTitle = document.querySelector('.header h1');
+        if (headerTitle) {
+            headerTitle.addEventListener('click', () => {
+                console.log('Header title clicked - refreshing page');
+                window.location.reload();
+            });
+        }
+
         // City input enter key - henter automatisk værdata når du trykker Enter
         document.getElementById('cityInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {

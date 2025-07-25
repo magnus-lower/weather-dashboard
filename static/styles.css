@@ -100,6 +100,14 @@ body.dark-mode .header {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.02em;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.header h1:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
 }
 
 .favorites-icon {
