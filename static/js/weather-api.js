@@ -31,47 +31,43 @@ const WeatherAPI = {
 
     // Reverse geocode coordinates to get city name
     reverseGeocode(lat, lon, unit) {
-    return fetch(`/reverse_geocode?lat=${lat}&lon=${lon}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.error) {
-                console.error("Reverse geocoding failed:", data.error);
+        return fetch(`/reverse_geocode?lat=${lat}&lon=${lon}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    console.error("Reverse geocoding failed:", data.error);
+                    UIUtils.hideLoadingSpinner();
+                    // Stille feil - ikke vis alert, bare logg
+                    return;
+                }
+
+                const city = data.city || data.name;
+                const country = data.country;
+
+                console.log(`Reverse Geocoded City: ${city}, Country: ${country}`);
+
+                // Update app state
+                WeatherApp.updateState({
+                    lastCity: city,
+                    lastCountry: country
+                });
+
+                // Update input field
+                document.getElementById('cityInput').value = `${city}, ${country}`;
+
+                // Fetch weather using coordinates directly for better accuracy
+                this.fetchWeatherData('/weather_by_coords', { lat, lon, unit });
+            })
+            .catch(error => {
+                console.error("Error in reverse geocoding:", error);
                 UIUtils.hideLoadingSpinner();
-                // Instead of showing alert, silently fall back to manual input
-                return;
-            }
-
-            const city = data.name;
-            const country = data.country;
-
-            console.log(`Reverse Geocoded City: ${city}, Country: ${country}`);
-
-            // Update app state
-            WeatherApp.updateState({
-                lastCity: city,
-                lastCountry: country
+                // Stille feil - bruker kan manuelt skrive inn bynavn
             });
-
-            // Update input field
-            document.getElementById('cityInput').value = `${city}, ${country}`;
-
-            // Fetch weather using the city name
-            this.fetchWeatherData('/weather', { city, country, unit });
-
-            // Also fetch forecast
-            ForecastService.fetchForecast(city, country);
-        })
-        .catch(error => {
-            console.error("Error in reverse geocoding:", error);
-            UIUtils.hideLoadingSpinner();
-            // Remove the alert and just log the error
-            // User can manually enter city name instead
-        });
     },
 
     // Fetch city suggestions for autocomplete

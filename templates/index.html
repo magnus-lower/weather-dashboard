@@ -14,6 +14,15 @@
             <div class="header">
                 <h1>Værdashbord</h1>
                 <div class="header-actions">
+                    <button id="themeToggle" class="theme-toggle" title="Bytt mørk/lys modus" aria-label="Bytt tema">
+                        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+                        </svg>
+                        <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
                     <div class="favorites-icon" id="favoritesIcon" role="button" aria-label="Vis favoritter" tabindex="0">
                         <!-- Star Icon -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -33,8 +42,14 @@
             <!-- Input Fields and Buttons -->
             <div class="input-group">
                 <label for="cityInput" class="visually-hidden">Skriv inn bynavn</label>
-                <input type="text" id="cityInput" placeholder="Skriv inn bynavn" aria-autocomplete="list" aria-controls="citySuggestions">
-                <button id="getWeatherBtn" type="button">Hent værdata</button>
+                <div class="input-with-location">
+                    <input type="text" id="cityInput" placeholder="Skriv inn bynavn eller bruk lokasjonsknappen" aria-autocomplete="list" aria-controls="citySuggestions">
+                    <button id="locationBtn" type="button" class="location-btn" title="Bruk min lokasjon" aria-label="Bruk min lokasjon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                        </svg>
+                    </button>
+                </div>
                 <ul id="citySuggestions" class="suggestions-list" role="listbox"></ul>
             </div>
 
