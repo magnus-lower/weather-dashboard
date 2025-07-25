@@ -15,6 +15,7 @@ const Favorites = {
         if (favoritesBtn) {
             favoritesBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                e.target.blur(); // Remove focus highlight after click
                 this.toggleFavoritesDropdown();
             });
         } else {

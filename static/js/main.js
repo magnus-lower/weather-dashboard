@@ -58,8 +58,9 @@ const WeatherApp = {
         // Location button
         const locationBtn = document.getElementById('locationBtn');
         if (locationBtn) {
-            locationBtn.addEventListener('click', () => {
+            locationBtn.addEventListener('click', (e) => {
                 console.log('Location button clicked');
+                e.target.blur(); // Remove focus highlight after click
                 LocationService.fetchWeatherByLocation();
             });
         }

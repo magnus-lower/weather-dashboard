@@ -1,13 +1,4 @@
-// weather-display.js - Handles weather data display
-const WeatherDisplay = {
-    init() {
-        console.log('Weather Display module initialized');
-    },
-
-    // Display current weather data
-    displayWeatherData(data) {
-        const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-        const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
+// weathe        const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
         const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
         const unit = '°C';
         const windUnit = 'm/s';
@@ -21,6 +12,26 @@ const WeatherDisplay = {
                 <h2>${data.name}, ${data.sys.country}</h2>
                 <div class="main-temp">${Math.round(data.main.temp)}${unit}</div>
                 <div class="weather-description">${weatherDescription}</div>
+            </div>` - Handles weather data display
+const WeatherDisplay = {
+    init() {
+        console.log('Weather Display module initialized');
+    },
+
+    // Display current weather data
+    displayWeatherData(data) {
+        const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+        const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
+        const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
+        const unit = '°C';
+        const windUnit = 'm/s';
+
+        document.getElementById('weatherData').innerHTML = `
+            <div class="weather-main">
+                <img src="${iconUrl}" alt="Værikon" class="weather-icon">
+                <h2>${data.name}, ${data.sys.country}</h2>
+                <div class="main-temp">${Math.round(data.main.temp)}${unit}</div>
+                <div class="weather-description">${data.weather[0].description}</div>
             </div>
             
             <div class="weather-details">
@@ -288,16 +299,13 @@ const WeatherDisplay = {
             const precipitation = (forecast.rain && forecast.rain['3h']) || 0;
             const windSpeed = forecast.wind.speed.toFixed(1);
             
-            // Oversett værbeskrivelsen til norsk
-            const condition = WeatherTranslations.translate(forecast.weather[0].description);
-            
             return `
                 <div class="hourly-item">
                     <div class="hour-time">${hour}</div>
                     <div class="hour-temp">${temp}°</div>
-                    <div class="hour-condition">${condition}</div>
+                    <div class="hour-condition">${forecast.weather[0].description}</div>
                     <div class="hour-precipitation">Nedbør: ${Math.round(precipitation * 100)}%</div>
-                    <div class="hour-wind">Vind: ${windSpeed} m/s</div>
+                    <div class="hour-wind">Vind: ${windSpeed}m/s</div>
                 </div>
             `;
         }).join('');
@@ -421,9 +429,7 @@ const WeatherDisplay = {
             const maxTemp = Math.round(forecast.main.temp_max);
             const minTemp = Math.round(forecast.main.temp_min);
             const iconUrl = `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`;
-            
-            // Oversett værbeskrivelsen til norsk
-            const description = WeatherTranslations.translate(forecast.weather[0].description);
+            const description = forecast.weather[0].description;
             
             // Simulate precipitation chance
             const precipitationChance = Math.floor(Math.random() * 100);
