@@ -78,11 +78,11 @@ const Favorites = {
         favoritesList.innerHTML = favorites.map(city => `
             <div class="favorite-item" data-city="${city}">
                 <div class="favorite-name">
-                    <span>⭐</span>
+                    <div class="favorite-star-indicator"></div>
                     <span>${city}</span>
                 </div>
                 <button class="favorite-remove" title="Fjern fra favoritter" data-city="${city}">
-                    ❌
+                    <span class="remove-text">Fjern</span>
                 </button>
             </div>
         `).join('');
@@ -114,6 +114,22 @@ const Favorites = {
         const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
         console.log('User Favorites:', favorites);
         return favorites;
+    },
+
+    // Check if a city is already in favorites
+    isCityInFavorites(city) {
+        const favorites = this.loadFavorites();
+        let cityName;
+        
+        // Handle both string and object input
+        if (typeof city === 'string') {
+            cityName = city;
+        } else {
+            // Build city name from object (same logic as addToFavorites)
+            cityName = city.display_name || `${city.name}, ${city.country}`;
+        }
+
+        return favorites.includes(cityName);
     },
 
     // Add city to favorites

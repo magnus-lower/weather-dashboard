@@ -16,6 +16,17 @@ const CitySearch = {
             
             // Legg til keyboard navigation for suggestions
             cityInput.addEventListener('keydown', (event) => this.handleKeyNavigation(event));
+
+            // Show suggestions when input gets focus (if there's text)
+            cityInput.addEventListener('focus', (event) => {
+                const query = event.target.value.trim();
+                if (query.length >= 2) {
+                    this.fetchAndDisplaySuggestions(query);
+                } else if (query.length === 0) {
+                    // Show search history if input is empty
+                    this.showSearchHistory();
+                }
+            });
         }
 
         // Hide suggestions when clicking outside the search area
@@ -213,21 +224,43 @@ const CitySearch = {
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'suggestion-actions';
 
-                // Star icon for favorites
-                const star = document.createElement('span');
-                star.className = 'suggestion-star';
-                star.innerHTML = '⭐';
-                star.title = 'Legg til i favoritter';
-                star.addEventListener('click', (e) => {
+                // Custom favorite button (no emoji)
+                const favoriteBtn = document.createElement('button');
+                favoriteBtn.className = 'suggestion-favorite-btn';
+                favoriteBtn.type = 'button';
+                favoriteBtn.title = 'Legg til i favoritter';
+                
+                // Check if city is already in favorites
+                const isAlreadyFavorite = typeof Favorites !== 'undefined' && Favorites.isCityInFavorites(city);
+                
+                if (isAlreadyFavorite) {
+                    favoriteBtn.classList.add('added');
+                    favoriteBtn.innerHTML = '<span class="favorite-text">Lagt til!</span>';
+                    favoriteBtn.title = 'Allerede i favoritter';
+                } else {
+                    favoriteBtn.innerHTML = '<span class="favorite-text">Favoritt</span>';
+                }
+                
+                favoriteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (typeof Favorites !== 'undefined') {
-                        Favorites.addToFavorites(city);
-                        star.innerHTML = '✅';
-                        setTimeout(() => star.innerHTML = '⭐', 1000);
+                        if (!isAlreadyFavorite) {
+                            Favorites.addToFavorites(city);
+                            favoriteBtn.classList.add('added');
+                            favoriteBtn.innerHTML = '<span class="favorite-text">Lagt til!</span>';
+                            favoriteBtn.title = 'Allerede i favoritter';
+                        } else {
+                            // Optional: Show message that it's already added
+                            const lang = localStorage.getItem('language') || 'no';
+                            const message = lang === 'no' 
+                                ? 'Denne byen er allerede i favorittene dine!'
+                                : 'This city is already in your favorites!';
+                            alert(message);
+                        }
                     }
                 });
 
-                actionsDiv.appendChild(star);
+                actionsDiv.appendChild(favoriteBtn);
                 li.appendChild(actionsDiv);
 
                 // Click handler for city selection
