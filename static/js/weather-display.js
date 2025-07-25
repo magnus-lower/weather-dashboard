@@ -195,6 +195,7 @@ const WeatherDisplay = {
 
         // Display the forecasts
         this.displayHourlyForecast(hourlyForecasts);
+        console.log('Called displayHourlyForecast from displayHourlyAndDailyForecast'); // Debug
         this.displayDailyForecast(dailyForecasts);
     },
 
@@ -220,7 +221,8 @@ const WeatherDisplay = {
 
     // Process hourly forecast data (next 24 hours)
     processHourlyForecastData(forecastList) {
-        return forecastList.slice(0, 8); // Next 24 hours (3-hour intervals)
+        console.log('Processing hourly forecast with 8 items');
+        return forecastList.slice(0, 8); // Back to 8 items
     },
 
     // Process daily forecast data
@@ -272,10 +274,11 @@ const WeatherDisplay = {
 
     // Display hourly forecast with temperature chart
     displayHourlyForecast(hourlyForecasts) {
+        console.log('Displaying hourly forecast with', hourlyForecasts.length, 'items'); // Debug
         this.drawTemperatureChart(hourlyForecasts);
         
         const hourlyDetails = document.getElementById('hourlyDetails');
-        hourlyDetails.innerHTML = hourlyForecasts.map(forecast => {
+        const htmlContent = hourlyForecasts.map(forecast => {
             const time = new Date(forecast.dt * 1000);
             const hour = time.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
             const temp = Math.round(forecast.main.temp);
@@ -292,6 +295,15 @@ const WeatherDisplay = {
                 </div>
             `;
         }).join('');
+        
+        hourlyDetails.innerHTML = htmlContent;
+        
+        // Debug: Check how many hourly-item elements actually exist
+        const actualItems = document.querySelectorAll('.hourly-item');
+        console.log('Actual hourly-item elements in DOM:', actualItems.length);
+        actualItems.forEach((item, index) => {
+            console.log(`Item ${index + 1}:`, item.querySelector('.hour-time').textContent);
+        });
     },
 
     // Draw temperature chart using Canvas
