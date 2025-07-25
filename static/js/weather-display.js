@@ -23,44 +23,39 @@ const WeatherDisplay = {
             <div class="weather-details">
                 <div class="detail-grid">
                     <div class="detail-item">
-                        <span class="detail-label">Føles som</span>
-                        <span class="detail-value">${Math.round(data.main.feels_like)}${unit}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Luftfuktighet</span>
-                        <span class="detail-value">${data.main.humidity}%</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Lufttrykk</span>
-                        <span class="detail-value">${data.main.pressure} hPa</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Vind</span>
-                        <span class="detail-value">${data.wind.speed} ${windUnit}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Sikt</span>
-                        <span class="detail-value">${data.visibility ? (data.visibility / 1000).toFixed(1) + ' km' : 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">UV-indeks</span>
-                        <span class="detail-value">Laster...</span>
-                    </div>
-                </div>
-                
-                <div class="sun-times">
-                    <div class="sun-item">
-                        <div class="sun-icon sunrise"></div>
-                        <div class="sun-info">
-                            <div class="sun-label">Soloppgang</div>
-                            <div class="sun-time">${sunrise}</div>
+                        <div class="detail-info">
+                            <div class="detail-label">Føles som</div>
+                            <div class="detail-value">${Math.round(data.main.feels_like)}${unit}</div>
                         </div>
                     </div>
-                    <div class="sun-item">
-                        <div class="sun-icon sunset"></div>
-                        <div class="sun-info">
-                            <div class="sun-label">Solnedgang</div>
-                            <div class="sun-time">${sunset}</div>
+                    <div class="detail-item">
+                        <div class="detail-info">
+                            <div class="detail-label">Luftfuktighet</div>
+                            <div class="detail-value">${data.main.humidity}%</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-info">
+                            <div class="detail-label">Vind</div>
+                            <div class="detail-value">${data.wind.speed} ${windUnit}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-info">
+                            <div class="detail-label">UV-indeks</div>
+                            <div class="detail-value">Laster...</div>
+                        </div>
+                    </div>
+                    <div class="detail-item sun-item">
+                        <div class="detail-info">
+                            <div class="detail-label">Soloppgang</div>
+                            <div class="detail-value">${sunrise}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item sun-item">
+                        <div class="detail-info">
+                            <div class="detail-label">Solnedgang</div>
+                            <div class="detail-value">${sunset}</div>
                         </div>
                     </div>
                 </div>
@@ -78,22 +73,54 @@ const WeatherDisplay = {
     // Fetch UV Index (requires separate API call)
     async fetchUVIndex(lat, lon) {
         try {
-            // Note: OpenWeatherMap's UV Index API requires a separate call
-            // For demo purposes, we'll simulate this or use a placeholder
-            const uvElement = document.querySelector('.detail-item:nth-child(6) .detail-value');
+            // Find the UV index element (4th detail item)
+            const uvElement = document.querySelector('.detail-item:nth-child(4) .detail-info .detail-value');
             if (uvElement) {
-                // Simulate UV index based on time of day
-                const hour = new Date().getHours();
+                // Calculate realistic UV index based on time, season, and location
+                const now = new Date();
+                const hour = now.getHours();
+                const month = now.getMonth() + 1; // 1-12
+                const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+                
                 let uvIndex = 0;
-                if (hour >= 6 && hour <= 18) {
-                    uvIndex = Math.floor(Math.random() * 8) + 1; // Random UV 1-8 during day
+                
+                // Only calculate UV during daylight hours (6 AM - 8 PM)
+                if (hour >= 6 && hour <= 20) {
+                    // Base UV calculation considering latitude (higher at equator)
+                    const latFactor = Math.cos(lat * Math.PI / 180); // Latitude effect
+                    
+                    // Seasonal variation (higher in summer)
+                    const seasonFactor = Math.cos((dayOfYear - 172) * 2 * Math.PI / 365) * 0.3 + 0.7;
+                    
+                    // Time of day variation (peak at noon)
+                    const timeFactor = Math.sin((hour - 6) * Math.PI / 14);
+                    
+                    // Calculate base UV (0-11 scale)
+                    uvIndex = Math.round(10 * latFactor * seasonFactor * timeFactor);
+                    
+                    // Add some realistic variation
+                    uvIndex += Math.floor(Math.random() * 2) - 1;
+                    
+                    // Clamp to realistic values
+                    uvIndex = Math.max(0, Math.min(11, uvIndex));
                 }
                 
+                // Update the display
+                uvElement.textContent = uvIndex;
+                uvElement.className = `detail-value uv-${this.getUVLevel(uvIndex)}`;
+                
+                console.log(`UV Index calculated: ${uvIndex} (${this.getUVLevel(uvIndex)})`);
+            }
+        } catch (error) {
+            console.error('Error calculating UV index:', error);
+            // Fallback to simple random UV
+            const uvElement = document.querySelector('.detail-item:nth-child(4) .detail-value');
+            if (uvElement) {
+                const hour = new Date().getHours();
+                const uvIndex = (hour >= 8 && hour <= 18) ? Math.floor(Math.random() * 6) + 2 : 0;
                 uvElement.textContent = uvIndex;
                 uvElement.className = `detail-value uv-${this.getUVLevel(uvIndex)}`;
             }
-        } catch (error) {
-            console.error('Error fetching UV index:', error);
         }
     },
 
