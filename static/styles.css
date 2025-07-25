@@ -219,28 +219,34 @@ body.dark-mode input[type="text"]::placeholder {
     height: 48px;
     padding: 0;
     margin: 0;
-    border: 1px solid var(--primary-color);
+    border: none; /* Remove border */
     border-radius: var(--border-radius-sm);
-    background: var(--primary-color);
-    color: white;
+    background: transparent; /* Transparent background */
+    color: var(--primary-color); /* Icon color */
     cursor: pointer;
     transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--shadow);
+    box-shadow: none; /* Remove shadow */
+    outline: none; /* Remove blue outline */
 }
 
 .location-btn:hover {
-    background: var(--primary-hover);
-    transform: translateY(-50%) scale(1.05);
-    box-shadow: var(--shadow-lg);
+    background: rgba(30, 64, 175, 0.1); /* Light background on hover */
+    transform: translateY(-50%) scale(1.1);
+    color: var(--primary-hover);
+}
+
+.location-btn:focus {
+    background: rgba(30, 64, 175, 0.1);
+    color: var(--primary-hover);
 }
 
 .location-btn svg {
     width: 22px;
     height: 22px;
-    stroke: white;
+    stroke: currentColor; /* Use current color */
 }
 
 /* Favorites dropdown styling */
@@ -249,38 +255,45 @@ body.dark-mode input[type="text"]::placeholder {
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
+    z-index: 2000; /* High z-index to ensure it's above all weather content */
 }
 
 .favorites-btn {
     width: 48px;
     height: 48px;
     padding: 0;
-    border: 1px solid var(--primary-color);
+    border: none; /* Remove border */
     border-radius: var(--border-radius-sm);
-    background: var(--primary-color);
-    color: white;
+    background: transparent; /* Transparent background */
+    color: var(--primary-color); /* Icon color */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: var(--transition);
-    box-shadow: var(--shadow);
+    box-shadow: none; /* Remove shadow */
+    outline: none; /* Remove blue outline */
 }
 
 .favorites-btn:hover {
-    background: var(--primary-hover);
-    transform: scale(1.05);
-    box-shadow: var(--shadow-lg);
+    background: rgba(30, 64, 175, 0.1); /* Light background on hover */
+    transform: scale(1.1);
+    color: var(--primary-hover);
 }
 
 .favorites-btn:active {
     transform: scale(0.95);
 }
 
+.favorites-btn:focus {
+    background: rgba(30, 64, 175, 0.1);
+    color: var(--primary-hover);
+}
+
 .favorites-btn svg {
     width: 22px;
     height: 22px;
-    stroke: white;
+    stroke: currentColor; /* Use current color */
 }
 
 .favorites-dropdown {
@@ -293,7 +306,7 @@ body.dark-mode input[type="text"]::placeholder {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-lg);
-    z-index: 200;
+    z-index: 1000; /* Higher z-index to ensure it's above everything */
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
@@ -495,6 +508,34 @@ body.dark-mode .favorites-btn:hover {
 .weather-main {
     text-align: center;
     margin-bottom: 36px;
+    position: relative;
+    z-index: 1; /* Ensure weather content is below dropdowns */
+}
+
+.weather-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    display: block;
+    animation: weatherIconFloat 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: -1; /* Negative z-index to ensure it stays behind all other content */
+}
+
+.weather-icon:hover {
+    transform: scale(1.1);
+    /* Removed animation-play-state: paused to keep animation running */
+}
+
+@keyframes weatherIconFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 .weather-main h2 {
@@ -1442,7 +1483,7 @@ body.dark-mode .settings-toggle:hover {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-lg);
-    z-index: 200;
+    z-index: 1000; /* Higher z-index to ensure it's above everything */
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
@@ -1599,7 +1640,7 @@ body.dark-mode input:checked + .theme-slider {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-xl);
-    z-index: 100;
+    z-index: 1000; /* Higher z-index to ensure it's above everything */
     max-height: 400px; /* Increased max height */
     overflow: hidden; /* Remove scrolling */
     margin: 0;
