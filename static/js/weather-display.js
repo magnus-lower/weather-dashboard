@@ -71,6 +71,11 @@ const WeatherDisplay = {
         // Fetch additional data
         this.fetchUVIndex(data.coord.lat, data.coord.lon);
         this.fetchAndDisplayForecast(data.name, data.sys.country);
+        
+        // Hide initial loader if this is the first load
+        if (typeof WeatherApp !== 'undefined') {
+            WeatherApp.hideInitialLoader();
+        }
     },
 
     // Fetch UV Index (requires separate API call)

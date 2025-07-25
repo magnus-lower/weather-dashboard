@@ -49,6 +49,13 @@ const LocationService = {
                 // Stille feil - bare logg det, ikke vis bruker feilmelding
                 console.log('Auto-location failed:', this.getErrorMessage(error));
                 console.log('User can manually enter city name or click location button');
+                
+                // Hide initial loader if auto-location fails
+                if (typeof WeatherApp !== 'undefined') {
+                    setTimeout(() => {
+                        WeatherApp.hideInitialLoader();
+                    }, 1000); // Give it a second, then show the interface
+                }
             },
             {
                 enableHighAccuracy: false, // Raskere respons

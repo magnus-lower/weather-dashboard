@@ -1,5 +1,8 @@
 // main.js - Main application file
 document.addEventListener('DOMContentLoaded', function () {
+    // Set loading state
+    document.body.classList.add('loading');
+    
     // Initialize the application
     WeatherApp.init();
 });
@@ -11,7 +14,8 @@ const WeatherApp = {
         lastLat: null,
         lastLon: null,
         lastCity: null,
-        lastCountry: null
+        lastCountry: null,
+        isInitialLoad: true
     },
 
     // Initialize the application
@@ -33,6 +37,11 @@ const WeatherApp = {
 
         // Set up main event listeners
         this.setupEventListeners();
+
+        // Fallback: Hide loader after 10 seconds no matter what
+        setTimeout(() => {
+            this.hideInitialLoader();
+        }, 10000);
 
         // Ikke kall LocationService.fetchWeatherByLocation() her - det gjøres i LocationService.init()
     },
@@ -115,5 +124,32 @@ const WeatherApp = {
     // Get current application state
     getState() {
         return this.state;
+    },
+
+    // Hide initial loader after first weather data is loaded
+    hideInitialLoader() {
+        if (this.state.isInitialLoad) {
+            console.log('Hiding initial loader...');
+            const initialLoader = document.getElementById('initialLoader');
+            const body = document.body;
+            
+            if (initialLoader) {
+                // Add hidden class for smooth transition
+                initialLoader.classList.add('hidden');
+                
+                // Remove loading class from body
+                body.classList.remove('loading');
+                
+                // Remove loader from DOM after transition
+                setTimeout(() => {
+                    if (initialLoader.parentNode) {
+                        initialLoader.parentNode.removeChild(initialLoader);
+                    }
+                }, 800); // Match CSS transition duration
+            }
+            
+            // Mark as no longer initial load
+            this.state.isInitialLoad = false;
+        }
     }
 };
