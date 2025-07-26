@@ -55,25 +55,29 @@
                 <label for="cityInput" class="visually-hidden">Skriv inn bynavn</label>
                 <div class="input-with-location">
                     <input type="text" id="cityInput" placeholder="Skriv inn bynavn eller bruk lokasjonsknappen" aria-autocomplete="list" aria-controls="citySuggestions">
-                    <button id="locationBtn" type="button" class="location-btn" title="Bruk min lokasjon" aria-label="Bruk min lokasjon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
-                    </button>
-                    <div class="favorites-dropdown-container">
-                        <button id="favoritesBtn" type="button" class="favorites-btn" title="Vis favoritter" aria-label="Vis favoritter">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                        </button>
-                        <div class="favorites-dropdown" id="favoritesDropdown">
-                            <div class="favorites-header">
-                                <span data-en="Favorites" data-no="Favoritter">Favoritter</span>
-                            </div>
-                            <div class="favorites-list" id="favoritesList">
-                                <div class="no-favorites" data-en="No favorites added yet" data-no="Ingen favoritter lagt til ennå">
-                                    Ingen favoritter lagt til ennå
+                    <div class="button-group">
+                        <div class="location-btn-container">
+                            <button id="locationBtn" type="button" class="location-btn" title="Bruk min lokasjon" aria-label="Bruk min lokasjon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="favorites-dropdown-container">
+                            <button id="favoritesBtn" type="button" class="favorites-btn" title="Vis favoritter" aria-label="Vis favoritter">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </button>
+                            <div class="favorites-dropdown" id="favoritesDropdown">
+                                <div class="favorites-header">
+                                    <span data-en="Favorites" data-no="Favoritter">Favoritter</span>
+                                </div>
+                                <div class="favorites-list" id="favoritesList">
+                                    <div class="no-favorites" data-en="No favorites added yet" data-no="Ingen favoritter lagt til ennå">
+                                        Ingen favoritter lagt til ennå
+                                    </div>
                                 </div>
                             </div>
                         </div>
