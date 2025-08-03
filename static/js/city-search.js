@@ -249,13 +249,6 @@ const CitySearch = {
                             favoriteBtn.classList.add('added');
                             favoriteBtn.innerHTML = '<span class="favorite-text">Lagt til!</span>';
                             favoriteBtn.title = 'Allerede i favoritter';
-                        } else {
-                            // Optional: Show message that it's already added
-                            const lang = localStorage.getItem('language') || 'no';
-                            const message = lang === 'no' 
-                                ? 'Denne byen er allerede i favorittene dine!'
-                                : 'This city is already in your favorites!';
-                            alert(message);
                         }
                     }
                 });

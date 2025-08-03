@@ -159,18 +159,6 @@ const Favorites = {
             favorites.push(cityName);
             localStorage.setItem('favorites', JSON.stringify(favorites));
             this.updateFavoritesDisplay();
-            
-            const lang = localStorage.getItem('language') || 'no';
-            const message = lang === 'no' 
-                ? `${cityName} lagt til i favoritter!`
-                : `${cityName} added to favorites!`;
-            alert(message);
-        } else {
-            const lang = localStorage.getItem('language') || 'no';
-            const message = lang === 'no' 
-                ? `${cityName} er allerede i dine favoritter.`
-                : `${cityName} is already in your favorites.`;
-            alert(message);
         }
     },
 
