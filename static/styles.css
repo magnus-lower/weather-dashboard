@@ -517,8 +517,8 @@ body.dark-mode .favorites-btn:hover {
     height: 120px;
     margin: 0 auto;
     display: block;
-    animation: weatherIconFloat 3s ease-in-out infinite;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    animation: weatherIconFloat 2.5s ease-in-out infinite;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
     transition: transform 0.3s ease;
     position: relative;
     z-index: -1; /* Negative z-index to ensure it stays behind all other content */
@@ -526,7 +526,7 @@ body.dark-mode .favorites-btn:hover {
 
 .weather-icon:hover {
     transform: scale(1.1);
-    /* Removed animation-play-state: paused to keep animation running */
+    animation-play-state: paused;
 }
 
 @keyframes weatherIconFloat {
@@ -534,7 +534,7 @@ body.dark-mode .favorites-btn:hover {
         transform: translateY(0px);
     }
     50% {
-        transform: translateY(-10px);
+        transform: translateY(-15px);
     }
 }
 
@@ -1799,13 +1799,14 @@ body.loading .container {
     
     .favorites-dropdown {
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 90vw;
-        max-width: 350px;
-        max-height: 70vh;
+        top: 200%;
+        left: -750%;
+        transform: translate(-50%, 0);
+        width: 85vw;
+        max-width: 320px;
+        max-height: 60vh;
         overflow-y: auto;
+        right: auto;
     }
     
     /* Weather main section */
