@@ -174,9 +174,6 @@ const WeatherDisplay = {
                 </div>
                 
                 <div class="forecast-content hourly-forecast active" id="hourlyForecast">
-                    <div class="hourly-chart">
-                        <canvas id="hourlyChart" width="800" height="200"></canvas>
-                    </div>
                     <div class="hourly-details" id="hourlyDetails"></div>
                 </div>
                 
@@ -280,10 +277,9 @@ const WeatherDisplay = {
         return conditions.find(c => c.main === mostCommon);
     },
 
-    // Display hourly forecast with temperature chart
+    // Display hourly forecast
     displayHourlyForecast(hourlyForecasts) {
         console.log('Displaying hourly forecast with', hourlyForecasts.length, 'items'); // Debug
-        this.drawTemperatureChart(hourlyForecasts);
         
         const hourlyDetails = document.getElementById('hourlyDetails');
         const htmlContent = hourlyForecasts.map(forecast => {
@@ -315,104 +311,6 @@ const WeatherDisplay = {
         actualItems.forEach((item, index) => {
             console.log(`Item ${index + 1}:`, item.querySelector('.hour-time').textContent);
         });
-    },
-
-    // Draw temperature chart using Canvas
-    drawTemperatureChart(hourlyForecasts) {
-        const canvas = document.getElementById('hourlyChart');
-        const ctx = canvas.getContext('2d');
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        const temps = hourlyForecasts.map(f => f.main.temp);
-        const times = hourlyForecasts.map(f => {
-            const time = new Date(f.dt * 1000);
-            return time.toLocaleTimeString('no-NO', { hour: '2-digit' });
-        });
-        
-        const minTemp = Math.min(...temps);
-        const maxTemp = Math.max(...temps);
-        const tempRange = maxTemp - minTemp || 1;
-        
-        const chartWidth = canvas.width - 80;
-        const chartHeight = canvas.height - 60;
-        const startX = 40;
-        const startY = 30;
-        
-        // Draw grid lines
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 1;
-        
-        // Horizontal grid lines
-        for (let i = 0; i <= 4; i++) {
-            const y = startY + (chartHeight / 4) * i;
-            ctx.beginPath();
-            ctx.moveTo(startX, y);
-            ctx.lineTo(startX + chartWidth, y);
-            ctx.stroke();
-        }
-        
-        // Vertical grid lines
-        for (let i = 0; i < times.length; i++) {
-            const x = startX + (chartWidth / (times.length - 1)) * i;
-            ctx.beginPath();
-            ctx.moveTo(x, startY);
-            ctx.lineTo(x, startY + chartHeight);
-            ctx.stroke();
-        }
-        
-        // Draw temperature line
-        ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        
-        temps.forEach((temp, index) => {
-            const x = startX + (chartWidth / (times.length - 1)) * index;
-            const y = startY + chartHeight - ((temp - minTemp) / tempRange) * chartHeight;
-            
-            if (index === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-        });
-        
-        ctx.stroke();
-        
-        // Draw temperature points and labels
-        ctx.fillStyle = '#3b82f6';
-        ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-        ctx.textAlign = 'center';
-        
-        temps.forEach((temp, index) => {
-            const x = startX + (chartWidth / (times.length - 1)) * index;
-            const y = startY + chartHeight - ((temp - minTemp) / tempRange) * chartHeight;
-            
-            // Draw point
-            ctx.beginPath();
-            ctx.arc(x, y, 4, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Draw temperature label
-            ctx.fillStyle = '#1e293b';
-            ctx.fillText(`${Math.round(temp)}°`, x, y - 15);
-            
-            // Draw time label
-            ctx.fillStyle = '#64748b';
-            ctx.fillText(times[index], x, startY + chartHeight + 20);
-            
-            ctx.fillStyle = '#3b82f6';
-        });
-        
-        // Draw temperature scale
-        ctx.fillStyle = '#64748b';
-        ctx.textAlign = 'right';
-        for (let i = 0; i <= 4; i++) {
-            const temp = minTemp + (tempRange / 4) * (4 - i);
-            const y = startY + (chartHeight / 4) * i;
-            ctx.fillText(`${Math.round(temp)}°`, startX - 10, y + 5);
-        }
     },
 
     // Display daily forecast
