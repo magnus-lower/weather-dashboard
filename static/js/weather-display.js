@@ -27,37 +27,37 @@ const WeatherDisplay = {
                 <div class="detail-grid">
                     <div class="detail-item">
                         <div class="detail-info">
-                            <div class="detail-label">Føles som</div>
+                            <div class="detail-label"><i class="fas fa-thermometer-half"></i> Føles som</div>
                             <div class="detail-value">${Math.round(data.main.feels_like)}${unit}</div>
                         </div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-info">
-                            <div class="detail-label">Luftfuktighet</div>
+                            <div class="detail-label"><i class="fas fa-tint"></i> Luftfuktighet</div>
                             <div class="detail-value">${data.main.humidity}%</div>
                         </div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-info">
-                            <div class="detail-label">Vind</div>
+                            <div class="detail-label"><i class="fas fa-wind"></i> Vind</div>
                             <div class="detail-value">${data.wind.speed} ${windUnit}</div>
                         </div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-info">
-                            <div class="detail-label">UV-indeks</div>
+                            <div class="detail-label"><i class="fas fa-sun"></i> UV-indeks</div>
                             <div class="detail-value">Laster...</div>
                         </div>
                     </div>
                     <div class="detail-item sun-item">
                         <div class="detail-info">
-                            <div class="detail-label">Soloppgang</div>
+                            <div class="detail-label"><i class="fas fa-sun"></i> Soloppgang</div>
                             <div class="detail-value">${sunrise}</div>
                         </div>
                     </div>
                     <div class="detail-item sun-item">
                         <div class="detail-info">
-                            <div class="detail-label">Solnedgang</div>
+                            <div class="detail-label"><i class="fas fa-moon"></i> Solnedgang</div>
                             <div class="detail-value">${sunset}</div>
                         </div>
                     </div>

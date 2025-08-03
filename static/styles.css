@@ -580,158 +580,6 @@ body.dark-mode .favorites-btn:hover {
     background: rgba(255, 255, 255, 0.1);
     border-radius: var(--border-radius-sm);
     position: relative;
-    overflow: hidden;
-}
-
-/* Animated backgrounds for each weather element - Enhanced visibility */
-.detail-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 0.25;
-    pointer-events: none;
-    border-radius: var(--border-radius-sm);
-}
-
-/* Feels like - Temperature waves */
-.detail-item:nth-child(1)::before {
-    background: linear-gradient(45deg, #ff6b6b, #ee5a24, #ff9ff3, #ff6b6b);
-    background-size: 400% 400%;
-    animation: temperatureWaves 3s ease-in-out infinite;
-}
-
-@keyframes temperatureWaves {
-    0%, 100% { background-position: 0% 50%; opacity: 0.25; }
-    50% { background-position: 100% 50%; opacity: 0.45; }
-}
-
-/* Humidity - Water droplets */
-.detail-item:nth-child(2)::before {
-    background: radial-gradient(circle at 20% 80%, #74b9ff 0%, transparent 60%),
-                radial-gradient(circle at 80% 20%, #0984e3 0%, transparent 60%),
-                radial-gradient(circle at 40% 40%, #00b8d4 0%, transparent 60%),
-                radial-gradient(circle at 60% 70%, #4dabf7 0%, transparent 50%);
-    animation: rainDrops 2.5s ease-in-out infinite;
-}
-
-@keyframes rainDrops {
-    0%, 100% { opacity: 0.25; }
-    50% { opacity: 0.5; }
-}
-
-/* Wind - Flowing lines */
-.detail-item:nth-child(3)::before {
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(0, 206, 201, 0.5) 20%, 
-        rgba(255, 255, 255, 0.3) 50%, 
-        rgba(0, 184, 148, 0.5) 80%, 
-        transparent 100%);
-    background-size: 300% 100%;
-    animation: windFlow 7s linear infinite;
-}
-
-@keyframes windFlow {
-    0% { background-position: -300% 0; opacity: 0.25; }
-    50% { opacity: 0.6; }
-    100% { background-position: 300% 0; opacity: 0.25; }
-}
-
-/* UV Index - Pulsing sun rays */
-.detail-item:nth-child(4)::before {
-    background: radial-gradient(circle, 
-        rgba(253, 203, 110, 0.5) 0%, 
-        rgba(225, 112, 85, 0.4) 30%, 
-        rgba(255, 193, 7, 0.3) 60%, 
-        transparent 80%);
-    animation: uvPulse 2s ease-in-out infinite;
-}
-
-@keyframes uvPulse {
-    0%, 100% { opacity: 0.25; }
-    50% { opacity: 0.6; }
-}
-
-/* Sunrise - Morning glow */
-.detail-item:nth-child(5)::before {
-    background: radial-gradient(ellipse at center, 
-        rgba(255, 154, 86, 0.6) 0%, 
-        rgba(255, 107, 53, 0.4) 40%, 
-        rgba(255, 140, 66, 0.3) 70%, 
-        transparent 100%);
-    animation: sunriseGlow 4s ease-in-out infinite;
-}
-
-@keyframes sunriseGlow {
-    0%, 100% { opacity: 0.25; }
-    50% { opacity: 0.6; }
-}
-
-/* Sunset - Evening warmth */
-.detail-item:nth-child(6)::before {
-    background: radial-gradient(ellipse at center, 
-        rgba(255, 107, 53, 0.6) 0%, 
-        rgba(214, 51, 132, 0.4) 40%, 
-        rgba(184, 50, 128, 0.3) 70%, 
-        transparent 100%);
-    animation: sunsetGlow 5s ease-in-out infinite;
-}
-
-@keyframes sunsetGlow {
-    0%, 100% { opacity: 0.25; }
-    50% { opacity: 0.6; }
-}
-
-/* Enhanced text animations - More visible */
-.detail-item:nth-child(1) .detail-value {
-    animation: temperatureFlicker 2.5s ease-in-out infinite;
-}
-
-@keyframes temperatureFlicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.9; color: #ff6b6b; text-shadow: 0 0 8px rgba(255, 107, 107, 0.5); }
-}
-
-.detail-item:nth-child(2) .detail-value {
-    animation: humidityDrop 3s ease-in-out infinite;
-}
-
-@keyframes humidityDrop {
-    0%, 90%, 100% { transform: translateY(0); }
-    45% { transform: translateY(-3px); text-shadow: 0 2px 8px rgba(116, 185, 255, 0.4); }
-}
-
-.detail-item:nth-child(3) .detail-value {
-    animation: windSway 1.5s ease-in-out infinite;
-}
-
-@keyframes windSway {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(2px); text-shadow: 2px 0 6px rgba(0, 206, 201, 0.3); }
-    75% { transform: translateX(-2px); text-shadow: -2px 0 6px rgba(0, 184, 148, 0.3); }
-}
-
-.detail-item:nth-child(4) .detail-value {
-    animation: uvGlow 2s ease-in-out infinite;
-}
-
-@keyframes uvGlow {
-    0%, 100% { text-shadow: 0 0 8px rgba(253, 203, 110, 0.4); }
-    50% { text-shadow: 0 0 20px rgba(253, 203, 110, 0.8), 0 0 30px rgba(225, 112, 85, 0.5); }
-}
-
-/* Sun time text effects */
-.detail-item:nth-child(5) .detail-value,
-.detail-item:nth-child(6) .detail-value {
-    animation: timeGlow 3s ease-in-out infinite;
-}
-
-@keyframes timeGlow {
-    0%, 100% { text-shadow: 0 0 4px rgba(255, 255, 255, 0.3); }
-    50% { text-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 0 20px rgba(255, 154, 86, 0.4); }
 }
 
 .detail-info {
@@ -741,10 +589,19 @@ body.dark-mode .favorites-btn:hover {
 .detail-label {
     font-size: 0.9rem;
     color: var(--secondary-color);
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+}
+
+.detail-label i {
+    font-size: 1.1rem;
+    color: var(--primary-color);
 }
 
 .detail-value {
