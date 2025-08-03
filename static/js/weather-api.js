@@ -58,7 +58,13 @@ const WeatherAPI = {
                 });
 
                 // Update input field
-                document.getElementById('cityInput').value = `${city}, ${country}`;
+                const cityInputElement = document.getElementById('cityInput');
+                cityInputElement.value = `${city}, ${country}`;
+                
+                // Update clear button position
+                if (window.CitySearch && window.CitySearch.positionClearButton) {
+                    window.CitySearch.positionClearButton(cityInputElement);
+                }
 
                 // Fetch weather using coordinates directly for better accuracy
                 this.fetchWeatherData('/weather_by_coords', { lat, lon, unit });

@@ -207,7 +207,49 @@ body.dark-mode input[type="text"]::placeholder {
 }
 
 .input-with-location input[type="text"] {
-    padding-right: 100px; /* Make room for both buttons */
+    padding-right: 140px; /* Make room for clear button + existing buttons */
+}
+
+/* Clear input button */
+.clear-input-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-fast);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--danger-color);
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10;
+    left: 10px; /* This will be dynamically updated by JavaScript */
+}
+
+.clear-input-btn.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.clear-input-btn:hover {
+    background-color: rgba(220, 38, 38, 0.1);
+    transform: translateY(-50%) scale(1.2);
+}
+
+body.dark-mode .clear-input-btn {
+    color: #ef4444;
+}
+
+body.dark-mode .clear-input-btn:hover {
+    background-color: rgba(239, 68, 68, 0.2);
 }
 
 .location-btn {
@@ -586,9 +628,7 @@ body.dark-mode .favorites-btn:hover {
     display: block;
     animation: weatherIconFloat 2.5s ease-in-out infinite;
     filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25)) 
-            drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))
-            brightness(1.1) 
-            contrast(1.15);
+            drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
     transition: transform 0.3s ease;
     position: relative;
     z-index: -1; /* Negative z-index to ensure it stays behind all other content */

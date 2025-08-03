@@ -186,6 +186,11 @@ const Favorites = {
         const cityInput = document.getElementById('cityInput');
         if (cityInput) {
             cityInput.value = city;
+            
+            // Update clear button position
+            if (window.CitySearch && window.CitySearch.positionClearButton) {
+                window.CitySearch.positionClearButton(cityInput);
+            }
         }
 
         // Update app state if WeatherApp is available

@@ -4,15 +4,44 @@ const CitySearch = {
         console.log('City Search module initialized');
         this.setupEventListeners();
         this.initSearchHistory();
+        
+        // Check if there's already text in the input field on page load
+        // Multiple checks to catch text that might be added later
+        setTimeout(() => {
+            const cityInput = document.getElementById('cityInput');
+            if (cityInput) {
+                this.positionClearButton(cityInput);
+            }
+        }, 200);
+        
+        // Additional check after longer delay
+        setTimeout(() => {
+            const cityInput = document.getElementById('cityInput');
+            if (cityInput) {
+                this.positionClearButton(cityInput);
+            }
+        }, 1000);
     },
 
     // Set up event listeners for city search
     setupEventListeners() {
         const cityInput = document.getElementById('cityInput');
+        const clearBtn = document.getElementById('clearInputBtn');
+        
         if (cityInput) {
             cityInput.addEventListener('input',
                 UIUtils.debounce((event) => this.handleCityInput(event), 300)
             );
+            
+            // Also handle input for positioning clear button
+            cityInput.addEventListener('input', (event) => {
+                this.positionClearButton(event.target);
+            });
+            
+            // Position clear button on focus too
+            cityInput.addEventListener('focus', (event) => {
+                this.positionClearButton(event.target);
+            });
             
             // Legg til keyboard navigation for suggestions
             cityInput.addEventListener('keydown', (event) => this.handleKeyNavigation(event));
@@ -26,7 +55,28 @@ const CitySearch = {
                     // Show search history if input is empty
                     this.showSearchHistory();
                 }
+                this.positionClearButton(event.target);
             });
+        }
+
+        // Clear button functionality
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                this.clearInputField();
+            });
+        }
+
+        // Initial positioning check for clear button
+        if (cityInput) {
+            // Check immediately and after a delay
+            this.positionClearButton(cityInput);
+            setTimeout(() => {
+                this.positionClearButton(cityInput);
+            }, 100);
+            // Additional check after more delay in case content loads later
+            setTimeout(() => {
+                this.positionClearButton(cityInput);
+            }, 500);
         }
 
         // Hide suggestions when clicking outside the search area
@@ -262,7 +312,9 @@ const CitySearch = {
 
                 // Click handler for city selection
                 li.addEventListener('click', () => {
-                    document.getElementById('cityInput').value = displayName;
+                    const cityInput = document.getElementById('cityInput');
+                    cityInput.value = displayName;
+                    this.positionClearButton(cityInput);
                     this.clearCitySuggestions();
                     this.selectCity(displayName, city);
                 });
@@ -296,19 +348,39 @@ const CitySearch = {
             this.addToSearchHistory(cityName, cityData);
         }
 
-        // Extract city and country
-        const cityParts = cityName.split(', ');
-        const city = cityParts.slice(0, cityParts.length - 1).join(', ');
-        const country = cityParts[cityParts.length - 1];
+        // If we have coordinate data, use the more precise coordinate-based API
+        if (cityData && cityData.lat && cityData.lon) {
+            // Update app state with full city name
+            WeatherApp.updateState({
+                lastCity: cityName,
+                lastCountry: cityData.country || 'NO'
+            });
 
-        // Update app state
-        WeatherApp.updateState({
-            lastCity: city,
-            lastCountry: country
-        });
+            // Use coordinate-based weather fetch for better accuracy
+            WeatherAPI.fetchWeatherData('/weather_by_coords', { 
+                lat: cityData.lat, 
+                lon: cityData.lon, 
+                unit: 'metric' 
+            });
+        } else {
+            // Fallback to name-based search
+            // Extract city and country
+            const cityParts = cityName.split(', ');
+            const city = cityParts.slice(0, cityParts.length - 1).join(', ');
+            const country = cityParts[cityParts.length - 1];
 
-        // Fetch weather data
-        WeatherAPI.fetchWeatherData('/weather', { city, country, unit: 'metric' });
+            // Update app state
+            WeatherApp.updateState({
+                lastCity: city,
+                lastCountry: country
+            });
+
+            // Fetch weather data
+            WeatherAPI.fetchWeatherData('/weather', { city, country, unit: 'metric' });
+        }
+
+        // Only hide suggestions, keep the input text
+        this.clearCitySuggestions();
     },
 
     // Clear city suggestions dropdown
@@ -355,7 +427,9 @@ const CitySearch = {
             li.prepend(historyIcon);
 
             li.addEventListener('click', () => {
-                document.getElementById('cityInput').value = historyItem.display_name;
+                const cityInput = document.getElementById('cityInput');
+                cityInput.value = historyItem.display_name;
+                this.positionClearButton(cityInput);
                 this.clearCitySuggestions();
                 this.selectCity(historyItem.display_name, historyItem);
             });
@@ -366,5 +440,60 @@ const CitySearch = {
 
             suggestionsList.appendChild(li);
         });
+    },
+
+    // Position clear button right after the text and show/hide based on content
+    positionClearButton(inputElement) {
+        const clearBtn = document.getElementById('clearInputBtn');
+        
+        if (clearBtn && inputElement) {
+            const inputValue = inputElement.value || '';
+            
+            // Hide button if no text
+            if (inputValue.trim().length === 0) {
+                clearBtn.classList.remove('visible');
+                return;
+            }
+            
+            // Show button and position it
+            clearBtn.classList.add('visible');
+            
+            // Create a temporary span to measure text width
+            const tempSpan = document.createElement('span');
+            tempSpan.style.position = 'absolute';
+            tempSpan.style.visibility = 'hidden';
+            tempSpan.style.whiteSpace = 'pre';
+            tempSpan.style.font = window.getComputedStyle(inputElement).font;
+            tempSpan.style.fontSize = window.getComputedStyle(inputElement).fontSize;
+            tempSpan.style.fontFamily = window.getComputedStyle(inputElement).fontFamily;
+            tempSpan.textContent = inputValue;
+            
+            document.body.appendChild(tempSpan);
+            const textWidth = tempSpan.offsetWidth;
+            document.body.removeChild(tempSpan);
+            
+            // Position the clear button right after the text
+            // Account for input padding (typically 12px on left) plus a bigger gap
+            const leftPosition = 12 + textWidth + 15; // 12px padding + text width + 15px gap
+            clearBtn.style.left = `${leftPosition}px`;
+        }
+    },
+
+    // Clear the input field and hide clear button
+    clearInputField() {
+        const cityInput = document.getElementById('cityInput');
+        if (cityInput) {
+            cityInput.value = '';
+            cityInput.focus(); // Keep focus on input after clearing
+            this.positionClearButton(cityInput); // This will hide the button since value is empty
+            
+            // Small delay to ensure the input is cleared before showing history
+            setTimeout(() => {
+                this.showSearchHistory(); // Show search history when field is cleared
+            }, 50);
+        }
     }
 };
+
+// Expose CitySearch to global scope
+window.CitySearch = CitySearch;

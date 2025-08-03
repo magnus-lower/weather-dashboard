@@ -30,6 +30,14 @@ const WeatherApp = {
 
         // Set up main event listeners
         this.setupEventListeners();
+        
+        // Additional check for clear button positioning after all modules are loaded
+        setTimeout(() => {
+            const cityInput = document.getElementById('cityInput');
+            if (cityInput && window.CitySearch && window.CitySearch.positionClearButton) {
+                window.CitySearch.positionClearButton(cityInput);
+            }
+        }, 2000);
 
         // Fallback: Hide loader after 10 seconds no matter what
         setTimeout(() => {
