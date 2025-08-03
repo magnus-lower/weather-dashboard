@@ -6,7 +6,39 @@ const WeatherDisplay = {
 
     // Display current weather data
     displayWeatherData(data) {
-        const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+        // Check if it's night time and adjust icon accordingly
+        let iconCode = data.weather[0].icon;
+        const currentTime = new Date().getTime() / 1000; // Current time in Unix timestamp
+        const sunriseTime = data.sys.sunrise;
+        const sunsetTime = data.sys.sunset;
+        
+        console.log('Current time:', new Date(currentTime * 1000).toLocaleTimeString());
+        console.log('Sunrise:', new Date(sunriseTime * 1000).toLocaleTimeString());
+        console.log('Sunset:', new Date(sunsetTime * 1000).toLocaleTimeString());
+        console.log('Original icon:', iconCode);
+        
+        // Determine if it's night time
+        const isNightTime = currentTime < sunriseTime || currentTime > sunsetTime;
+        
+        // If it's night time (after sunset or before sunrise), ensure we use night icon
+        if (isNightTime) {
+            console.log('It is night time - changing to night icon');
+            // Replace day icons with night icons
+            if (iconCode.endsWith('d')) {
+                iconCode = iconCode.slice(0, -1) + 'n'; // Change 'd' to 'n'
+                console.log('Changed day icon to night icon:', iconCode);
+            }
+        } else {
+            console.log('It is day time - ensuring day icon');
+            // If it's day time, ensure we use day icon
+            if (iconCode.endsWith('n')) {
+                iconCode = iconCode.slice(0, -1) + 'd'; // Change 'n' to 'd'
+                console.log('Changed night icon to day icon:', iconCode);
+            }
+        }
+        
+        const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+        console.log('Final icon URL:', iconUrl);
         const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
         const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
         const unit = '°C';
@@ -82,8 +114,8 @@ const WeatherDisplay = {
             </div>
         `;
 
-        // Update the background based on the main weather condition
-        this.updateBackground(data.weather[0].main.toLowerCase());
+        // Update the background based on the main weather condition and time of day
+        this.updateBackground(data.weather[0].main.toLowerCase(), isNightTime);
         
         // Fetch additional data
         this.fetchUVIndex(data.coord.lat, data.coord.lon);
@@ -378,31 +410,440 @@ const WeatherDisplay = {
         document.getElementById('weatherData').innerHTML = '';
     },
 
-    // Update background based on weather condition
-    updateBackground(weatherCondition) {
+    // Update background based on weather condition and time of day
+    updateBackground(weatherCondition, isNightTime) {
         const body = document.body;
+        
+        // Remove any existing weather animations
+        this.clearWeatherAnimations();
+        
+        // Create animation container
+        const animationContainer = document.createElement('div');
+        animationContainer.className = 'weather-animation';
+        body.appendChild(animationContainer);
+        
+        if (isNightTime) {
+            this.createNightBackground(weatherCondition, animationContainer);
+        } else {
+            this.createDayBackground(weatherCondition, animationContainer);
+        }
+    },
+
+    // Clear existing weather animations
+    clearWeatherAnimations() {
+        const existing = document.querySelector('.weather-animation');
+        if (existing) {
+            existing.remove();
+        }
+    },
+
+    // Create night time backgrounds and animations
+    createNightBackground(weatherCondition, container) {
+        const body = document.body;
+        
         switch (weatherCondition) {
             case 'clear':
-                body.style.background = 'linear-gradient(to bottom, #87CEFA, #f4f4f4)';
+                body.style.background = 'linear-gradient(to bottom, #0F0F23, #191970, #1e1e2e)';
+                this.createStars(container);
+                this.createShootingStars(container);
                 break;
             case 'clouds':
-                body.style.background = 'linear-gradient(to bottom, #B0C4DE, #f4f4f4)';
+                body.style.background = 'linear-gradient(to bottom, #2C2C54, #40407a, #57606f)';
+                this.createStars(container, 30); // Fewer stars due to clouds
+                this.createClouds(container, true);
                 break;
             case 'rain':
-                body.style.background = 'linear-gradient(to bottom, #708090, #f4f4f4)';
-                break;
-            case 'snow':
-                body.style.background = 'linear-gradient(to bottom, #E0FFFF, #f4f4f4)';
+            case 'drizzle':
+                body.style.background = 'linear-gradient(to bottom, #1e3c72, #2a5298, #3a6ba5)';
+                this.createRain(container, weatherCondition === 'drizzle' ? 50 : 100);
+                this.createLightning(container);
+                this.createClouds(container, true);
                 break;
             case 'thunderstorm':
-                body.style.background = 'linear-gradient(to bottom, #2F4F4F, #f4f4f4)';
+                body.style.background = 'linear-gradient(to bottom, #0f0f0f, #1a1a2e, #16213e)';
+                this.createLightning(container, true);
+                this.createRain(container, 150);
                 break;
-            case 'drizzle':
-                body.style.background = 'linear-gradient(to bottom, #4682B4, #f4f4f4)';
+            case 'snow':
+                body.style.background = 'linear-gradient(to bottom, #2C3E50, #34495e, #566573)';
+                this.createSnow(container);
+                this.createStars(container, 40);
+                break;
+            case 'mist':
+            case 'fog':
+                body.style.background = 'linear-gradient(to bottom, #1C1C1C, #2E2E2E, #404040)';
+                this.createMist(container);
+                this.createFogBank(container);
+                this.createStars(container, 20);
+                break;
+            case 'smoke':
+            case 'haze':
+                body.style.background = 'linear-gradient(to bottom, #2B2B2B, #3A3A3A, #4A4A4A)';
+                this.createSmoke(container);
+                this.createStars(container, 15);
+                break;
+            case 'dust':
+            case 'sand':
+                body.style.background = 'linear-gradient(to bottom, #4A4A3A, #5A5A4A, #6A6A5A)';
+                this.createDust(container);
+                break;
+            case 'ash':
+                body.style.background = 'linear-gradient(to bottom, #1A1A1A, #2A2A2A, #3A3A3A)';
+                this.createAsh(container);
+                break;
+            case 'squall':
+            case 'tornado':
+                body.style.background = 'linear-gradient(to bottom, #0A0A0A, #1A1A1A, #2A2A2A)';
+                this.createWind(container, true);
+                this.createTornado(container);
+                this.createLightning(container, true);
+                break;
+            case 'sleet':
+                body.style.background = 'linear-gradient(to bottom, #1e3c72, #2a5298, #3a6ba5)';
+                this.createSleet(container);
+                this.createStars(container, 25);
                 break;
             default:
-                body.style.background = 'linear-gradient(to bottom, #D3D3D3, #f4f4f4)';
+                body.style.background = 'linear-gradient(to bottom, #2C3E50, #34495e, #4A5B6C)';
+                this.createStars(container);
                 break;
+        }
+    },
+
+    // Create day time backgrounds and animations
+    createDayBackground(weatherCondition, container) {
+        const body = document.body;
+        
+        switch (weatherCondition) {
+            case 'clear':
+                body.style.background = 'linear-gradient(to bottom, #87CEEB, #98D8E8, #B0E0E6)';
+                this.createSunRays(container);
+                break;
+            case 'clouds':
+                body.style.background = 'linear-gradient(to bottom, #B0C4DE, #D3D3D3, #E6E6FA)';
+                this.createClouds(container, false);
+                break;
+            case 'rain':
+            case 'drizzle':
+                body.style.background = 'linear-gradient(to bottom, #708090, #778899, #B0C4DE)';
+                this.createRain(container, weatherCondition === 'drizzle' ? 40 : 80);
+                this.createClouds(container, false);
+                break;
+            case 'thunderstorm':
+                body.style.background = 'linear-gradient(to bottom, #2F4F4F, #696969, #778899)';
+                this.createLightning(container, true);
+                this.createRain(container, 120);
+                break;
+            case 'snow':
+                body.style.background = 'linear-gradient(to bottom, #E0FFFF, #F0F8FF, #F5F5F5)';
+                this.createSnow(container);
+                break;
+            case 'mist':
+            case 'fog':
+                body.style.background = 'linear-gradient(to bottom, #D3D3D3, #DCDCDC, #F5F5F5)';
+                this.createMist(container);
+                this.createFogBank(container);
+                break;
+            case 'smoke':
+            case 'haze':
+                body.style.background = 'linear-gradient(to bottom, #C0C0C0, #D0D0D0, #E0E0E0)';
+                this.createSmoke(container);
+                break;
+            case 'dust':
+            case 'sand':
+                body.style.background = 'linear-gradient(to bottom, #DAA520, #DEB887, #F5DEB3)';
+                this.createDust(container);
+                break;
+            case 'ash':
+                body.style.background = 'linear-gradient(to bottom, #696969, #808080, #A9A9A9)';
+                this.createAsh(container);
+                break;
+            case 'squall':
+            case 'tornado':
+                body.style.background = 'linear-gradient(to bottom, #2F4F4F, #708090, #778899)';
+                this.createWind(container, true);
+                this.createTornado(container);
+                this.createLightning(container);
+                break;
+            case 'sleet':
+                body.style.background = 'linear-gradient(to bottom, #708090, #778899, #B0C4DE)';
+                this.createSleet(container);
+                break;
+            case 'hail':
+                body.style.background = 'linear-gradient(to bottom, #4682B4, #5F9EA0, #87CEEB)';
+                this.createHail(container);
+                this.createLightning(container);
+                break;
+            case 'extreme':
+                body.style.background = 'linear-gradient(to bottom, #8B0000, #A0522D, #CD853F)';
+                this.createAurora(container);
+                this.createWind(container, true);
+                break;
+            default:
+                body.style.background = 'linear-gradient(to bottom, #D3D3D3, #E0E0E0, #F0F0F0)';
+                break;
+        }
+    },
+
+    // Create twinkling stars
+    createStars(container, count = 100) {
+        for (let i = 0; i < count; i++) {
+            const star = document.createElement('div');
+            star.className = `star ${['small', 'medium', 'large'][Math.floor(Math.random() * 3)]}`;
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 70 + '%'; // Only in upper 70% of screen
+            star.style.animationDelay = Math.random() * 2 + 's';
+            star.style.animationDuration = (Math.random() * 3 + 1) + 's';
+            container.appendChild(star);
+        }
+    },
+
+    // Create shooting stars
+    createShootingStars(container) {
+        const createShootingStar = () => {
+            const star = document.createElement('div');
+            star.className = 'shooting-star';
+            star.style.top = Math.random() * 50 + '%';
+            star.style.left = '100%';
+            star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            container.appendChild(star);
+            
+            setTimeout(() => {
+                if (star.parentNode) {
+                    star.remove();
+                }
+            }, 4000);
+        };
+        
+        // Create shooting stars at random intervals
+        setInterval(createShootingStar, Math.random() * 5000 + 3000);
+        
+        // Create initial shooting star
+        setTimeout(createShootingStar, Math.random() * 2000);
+    },
+
+    // Create floating clouds
+    createClouds(container, isDark = false) {
+        const cloudCount = Math.random() * 8 + 5;
+        
+        for (let i = 0; i < cloudCount; i++) {
+            const cloud = document.createElement('div');
+            cloud.className = `cloud ${['small', 'medium', 'large'][Math.floor(Math.random() * 3)]}`;
+            cloud.style.top = Math.random() * 60 + '%';
+            cloud.style.left = '-100px';
+            cloud.style.animationDelay = Math.random() * 20 + 's';
+            cloud.style.animationDuration = (Math.random() * 30 + 20) + 's';
+            
+            if (isDark) {
+                cloud.style.background = 'rgba(100, 100, 120, 0.6)';
+                const before = cloud.querySelector(':before');
+                if (before) {
+                    before.style.background = 'rgba(100, 100, 120, 0.6)';
+                }
+            }
+            
+            container.appendChild(cloud);
+        }
+    },
+
+    // Create rain animation
+    createRain(container, dropCount = 100) {
+        for (let i = 0; i < dropCount; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'raindrop';
+            drop.style.left = Math.random() * 100 + '%';
+            drop.style.animationDelay = Math.random() * 2 + 's';
+            drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+            container.appendChild(drop);
+        }
+    },
+
+    // Create snow animation
+    createSnow(container) {
+        const snowflakes = ['❄', '❅', '❆', '✻', '✼', '❇', '❈', '❉', '❊', '❋'];
+        
+        for (let i = 0; i < 50; i++) {
+            const flake = document.createElement('div');
+            flake.className = 'snowflake';
+            flake.textContent = snowflakes[Math.floor(Math.random() * snowflakes.length)];
+            flake.style.left = Math.random() * 100 + '%';
+            flake.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            flake.style.animationDelay = Math.random() * 10 + 's';
+            flake.style.animationDuration = (Math.random() * 10 + 5) + 's';
+            container.appendChild(flake);
+        }
+    },
+
+    // Create lightning effect
+    createLightning(container, intense = false) {
+        const createFlash = () => {
+            const lightning = document.createElement('div');
+            lightning.className = 'lightning';
+            container.appendChild(lightning);
+            
+            setTimeout(() => {
+                if (lightning.parentNode) {
+                    lightning.remove();
+                }
+            }, 200);
+        };
+        
+        const interval = intense ? (Math.random() * 3000 + 2000) : (Math.random() * 8000 + 5000);
+        
+        // Create lightning at random intervals
+        setInterval(createFlash, interval);
+        
+        // Create initial flash
+        setTimeout(createFlash, Math.random() * 3000);
+    },
+
+    // Create sun rays
+    createSunRays(container) {
+        const rays = document.createElement('div');
+        rays.className = 'sun-ray';
+        container.appendChild(rays);
+    },
+
+    // Create mist/fog effect
+    createMist(container) {
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'mist-particle';
+            particle.style.width = (Math.random() * 40 + 20) + 'px';
+            particle.style.height = (Math.random() * 40 + 20) + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            container.appendChild(particle);
+        }
+    },
+
+    // Create fog bank rolling in
+    createFogBank(container) {
+        const fogBank = document.createElement('div');
+        fogBank.className = 'fog-bank';
+        container.appendChild(fogBank);
+    },
+
+    // Create dust/sand storm
+    createDust(container) {
+        for (let i = 0; i < 60; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'dust-particle';
+            particle.style.width = (Math.random() * 8 + 3) + 'px';
+            particle.style.height = (Math.random() * 8 + 3) + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 8 + 's';
+            particle.style.animationDuration = (Math.random() * 5 + 5) + 's';
+            container.appendChild(particle);
+        }
+    },
+
+    // Create smoke/haze effect
+    createSmoke(container) {
+        for (let i = 0; i < 25; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'smoke-particle';
+            particle.style.width = (Math.random() * 50 + 30) + 'px';
+            particle.style.height = (Math.random() * 50 + 30) + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.bottom = Math.random() * 30 + '%';
+            particle.style.animationDelay = Math.random() * 12 + 's';
+            particle.style.animationDuration = (Math.random() * 8 + 8) + 's';
+            container.appendChild(particle);
+        }
+    },
+
+    // Create volcanic ash
+    createAsh(container) {
+        for (let i = 0; i < 40; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'ash-particle';
+            particle.style.width = (Math.random() * 6 + 2) + 'px';
+            particle.style.height = (Math.random() * 6 + 2) + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            container.appendChild(particle);
+        }
+    },
+
+    // Create hail storm
+    createHail(container) {
+        for (let i = 0; i < 60; i++) {
+            const hail = document.createElement('div');
+            hail.className = `hail ${['small', 'medium', 'large'][Math.floor(Math.random() * 3)]}`;
+            hail.style.left = Math.random() * 100 + '%';
+            hail.style.animationDelay = Math.random() * 2 + 's';
+            hail.style.animationDuration = (Math.random() * 0.4 + 0.6) + 's';
+            container.appendChild(hail);
+        }
+    },
+
+    // Create sleet (mix of rain and snow)
+    createSleet(container) {
+        for (let i = 0; i < 80; i++) {
+            const sleet = document.createElement('div');
+            const isRain = Math.random() > 0.4; // 60% rain, 40% ice
+            sleet.className = `sleet ${isRain ? 'rain' : 'ice'}`;
+            sleet.style.left = Math.random() * 100 + '%';
+            sleet.style.animationDelay = Math.random() * 2 + 's';
+            sleet.style.animationDuration = (Math.random() * 0.8 + 0.8) + 's';
+            container.appendChild(sleet);
+        }
+    },
+
+    // Create wind effect
+    createWind(container, intense = false) {
+        const particleCount = intense ? 40 : 20;
+        const speed = intense ? 1 : 1.5;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'wind-particle';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 3 + 's';
+            particle.style.animationDuration = speed + 's';
+            container.appendChild(particle);
+        }
+    },
+
+    // Create tornado effect
+    createTornado(container) {
+        const tornado = document.createElement('div');
+        tornado.className = 'tornado';
+        container.appendChild(tornado);
+        
+        // Add debris around tornado
+        for (let i = 0; i < 20; i++) {
+            const debris = document.createElement('div');
+            debris.className = 'dust-particle';
+            debris.style.width = '6px';
+            debris.style.height = '6px';
+            debris.style.left = (45 + Math.random() * 10) + '%';
+            debris.style.top = (50 + Math.random() * 30) + '%';
+            debris.style.animationDuration = '1s';
+            debris.style.background = 'rgba(139, 69, 19, 0.8)';
+            container.appendChild(debris);
+        }
+    },
+
+    // Create aurora effect
+    createAurora(container) {
+        const aurora = document.createElement('div');
+        aurora.className = 'aurora';
+        container.appendChild(aurora);
+        
+        // Add multiple aurora layers for depth
+        for (let i = 0; i < 3; i++) {
+            const layer = document.createElement('div');
+            layer.className = 'aurora';
+            layer.style.animationDelay = (i * 2) + 's';
+            layer.style.animationDuration = (8 + i * 2) + 's';
+            layer.style.filter = `hue-rotate(${i * 60}deg)`;
+            container.appendChild(layer);
         }
     }
 };
