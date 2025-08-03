@@ -22,13 +22,6 @@ const WeatherApp = {
     async init() {
         console.log('Initializing Weather Dashboard...');
 
-        // Initialize language and settings first
-        const { initLanguageSwitcher } = await import('./language.js');
-        const { initSettingsPanel } = await import('./settings-panel.js');
-        
-        initLanguageSwitcher();
-        initSettingsPanel();
-
         // Load and initialize modules
         Favorites.init();
         LocationService.init(); // Dette vil nå automatisk prøve å få lokasjon
@@ -74,17 +67,8 @@ const WeatherApp = {
             });
         }
 
-        // Load saved theme (removed individual theme toggle since it's now in settings panel)
-        this.loadSavedTheme();
-    },
-
-    // Load saved theme from localStorage (simplified since dark mode is handled in settings-panel)
-    loadSavedTheme() {
-        const savedTheme = localStorage.getItem('darkMode');
-        if (savedTheme === 'true') {
-            document.body.classList.add('dark-mode');
-            document.documentElement.classList.add('dark-mode');
-        }
+        // Load saved theme (removed theme toggle since settings are removed)
+        // No longer using dark mode
     },
 
     // Fetch weather for city in input field
@@ -92,9 +76,7 @@ const WeatherApp = {
         const city = document.getElementById('cityInput').value.trim();
 
         if (!city) {
-            const lang = localStorage.getItem('language') || 'no';
-            const message = lang === 'no' ? 'Vennligst skriv inn et bynavn.' : 'Please enter a city name.';
-            alert(message);
+            alert('Vennligst skriv inn et bynavn.');
             return;
         }
 

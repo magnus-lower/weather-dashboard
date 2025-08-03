@@ -13,41 +13,14 @@
         <!-- Main Container -->
         <div class="container">
             <div class="header">
-                <h1 data-en="Weather Dashboard" data-no="Værdashbord">Værdashbord</h1>
-                <div class="header-actions">
-                    <div class="settings-panel">
-                        <button class="settings-toggle" aria-label="Toggle settings">
-                            <i class="fas fa-cog"></i>
-                        </button>
-                        <div class="settings-dropdown" id="settings-dropdown">
-                            <div class="settings-item">
-                                <div class="settings-item-label">
-                                    <i class="fas fa-globe"></i> <span data-en="Language" data-no="Språk">Språk</span>
-                                </div>
-                                <div class="language-toggle" id="language-toggle">
-                                    <img src="https://flagcdn.com/24x18/gb.png" class="flag-icon" id="en-flag" alt="English">
-                                    <img src="https://flagcdn.com/24x18/no.png" class="flag-icon" id="no-flag" alt="Norwegian">
-                                </div>
-                            </div>
-                            <div class="settings-item">
-                                <div class="settings-item-label">
-                                    <i class="fas fa-moon"></i> <span id="theme-mode-text" data-en="Dark Mode" data-no="Mørk modus">Mørk modus</span>
-                                </div>
-                                <label class="theme-toggle">
-                                    <input type="checkbox" id="dark-mode-toggle">
-                                    <span class="theme-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="https://magnuslow.com/projects.html" class="back-to-site-btn" rel="noopener noreferrer">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="m12 19-7-7 7-7"></path>
-                            <path d="m19 12H5"></path>
-                        </svg>
-                        <span data-en="Back to website" data-no="Tilbake til nettsiden">Tilbake til nettsiden</span>
-                    </a>
-                </div>
+                <h1>Værdashbord</h1>
+                <a href="https://magnuslow.com/projects.html" class="back-to-site-btn" rel="noopener noreferrer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m12 19-7-7 7-7"></path>
+                        <path d="m19 12H5"></path>
+                    </svg>
+                    <span>Tilbake til nettsiden</span>
+                </a>
             </div>
 
             <!-- Input Fields and Buttons -->
@@ -72,10 +45,10 @@
                             </button>
                             <div class="favorites-dropdown" id="favoritesDropdown">
                                 <div class="favorites-header">
-                                    <span data-en="Favorites" data-no="Favoritter">Favoritter</span>
+                                    <span>Favoritter</span>
                                 </div>
                                 <div class="favorites-list" id="favoritesList">
-                                    <div class="no-favorites" data-en="No favorites added yet" data-no="Ingen favoritter lagt til ennå">
+                                    <div class="no-favorites">
                                         Ingen favoritter lagt til ennå
                                     </div>
                                 </div>
@@ -113,8 +86,6 @@
     <script src="/static/js/location-service.js?v=3"></script>
     <script src="/static/js/favorites.js?v=3"></script>
     <script src="/static/js/city-search.js?v=3"></script>
-    <script type="module" src="/static/js/settings-panel.js?v=3"></script>
-    <script type="module" src="/static/js/language.js?v=3"></script>
     <script src="/static/js/main.js?v=3"></script>
 </body>
 </html>
