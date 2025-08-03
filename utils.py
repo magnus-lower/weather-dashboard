@@ -77,9 +77,9 @@ def validate_city_name(city: str) -> tuple[bool, Optional[str]]:
     if len(city) > 100:
         return False, "Bynavn er for langt"
 
-    # Check for valid characters (letters, spaces, hyphens, apostrophes)
+    # Check for valid characters (letters, spaces, hyphens, apostrophes, commas)
     if not re.match(
-            r"^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽæøå\s\-'.]+$",
+            r"^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽæøå\s\-'.,]+$",
             city):
         return False, "Bynavn inneholder ugyldige tegn"
 

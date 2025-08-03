@@ -48,7 +48,11 @@ const CitySearch = {
         const query = event.target.value.trim();
         if (query.length >= 2) {
             this.fetchAndDisplaySuggestions(query);
+        } else if (query.length === 0) {
+            // Show search history when input is empty
+            this.showSearchHistory();
         } else {
+            // For 1 character, clear suggestions
             this.clearCitySuggestions();
         }
     },
@@ -345,7 +349,7 @@ const CitySearch = {
 
             // Add history icon
             const historyIcon = document.createElement('span');
-            historyIcon.innerHTML = '🕒';
+            historyIcon.className = 'history-icon';
             historyIcon.style.marginRight = '8px';
             historyIcon.style.fontSize = '0.9rem';
             li.prepend(historyIcon);

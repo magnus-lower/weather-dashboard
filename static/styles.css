@@ -383,26 +383,26 @@ body.dark-mode .favorite-item:hover {
 
 /* Custom favorite star indicator - replaces emoji */
 .favorite-star-indicator {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     position: relative;
     background: linear-gradient(135deg, #fbbf24, #f59e0b);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+    box-shadow: 0 2px 6px rgba(251, 191, 36, 0.3);
     transition: var(--transition);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .favorite-star-indicator::before {
-    content: '';
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: white;
-    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-    transform: scale(0.8);
+    content: '★';
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .favorite-star-indicator::after {
@@ -411,8 +411,73 @@ body.dark-mode .favorite-item:hover {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 50%);
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), transparent 50%);
     pointer-events: none;
+}
+
+/* Custom history icon styling */
+.history-icon {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    position: relative;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    opacity: 0.7;
+    transition: var(--transition);
+}
+
+.history-icon::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 4px;
+    background: var(--primary-color);
+    border-radius: 1px;
+}
+
+.history-icon::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%) rotate(90deg);
+    width: 1px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 1px;
+}
+
+.history-item:hover .history-icon {
+    opacity: 1;
+    border-color: var(--primary-hover);
+}
+
+.history-item:hover .history-icon::before,
+.history-item:hover .history-icon::after {
+    background: var(--primary-hover);
+}
+
+/* Dark mode support for history icon */
+body.dark-mode .history-icon {
+    border-color: var(--primary-light);
+}
+
+body.dark-mode .history-icon::before,
+body.dark-mode .history-icon::after {
+    background: var(--primary-light);
+}
+
+body.dark-mode .history-item:hover .history-icon {
+    border-color: white;
+}
+
+body.dark-mode .history-item:hover .history-icon::before,
+body.dark-mode .history-item:hover .history-icon::after {
+    background: white;
 }
 
 /* Custom remove button styling - replaces emoji */
@@ -465,14 +530,16 @@ body.dark-mode .favorite-item:hover {
 
 /* Hover effects for favorite items */
 .favorite-item:hover .favorite-star-indicator {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 4px 8px rgba(251, 191, 36, 0.4);
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 4px 10px rgba(251, 191, 36, 0.4);
+    background: linear-gradient(135deg, #fcd34d, #fbbf24);
 }
 
 /* Dark mode support */
 body.dark-mode .favorite-star-indicator {
     background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    box-shadow: 0 2px 4px rgba(251, 191, 36, 0.4);
+    box-shadow: 0 2px 6px rgba(251, 191, 36, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 body.dark-mode .favorite-remove {
@@ -518,15 +585,16 @@ body.dark-mode .favorites-btn:hover {
     margin: 0 auto;
     display: block;
     animation: weatherIconFloat 2.5s ease-in-out infinite;
-    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25)) 
+            drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))
+            brightness(1.1) 
+            contrast(1.15);
     transition: transform 0.3s ease;
     position: relative;
     z-index: -1; /* Negative z-index to ensure it stays behind all other content */
-}
-
-.weather-icon:hover {
-    transform: scale(1.1);
-    animation-play-state: paused;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 70%);
+    border-radius: 50%;
+    padding: 10px;
 }
 
 @keyframes weatherIconFloat {
@@ -920,7 +988,20 @@ body.dark-mode .back-to-site-btn:hover {
 .daily-weather-icon {
     width: 56px;
     height: 56px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.2)) 
+            brightness(1.1) 
+            contrast(1.1);
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.08), transparent 60%);
+    border-radius: 50%;
+    padding: 4px;
+    transition: var(--transition);
+}
+
+.daily-weather-icon:hover {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25)) 
+            brightness(1.2) 
+            contrast(1.15);
+    transform: scale(1.05);
 }
 
 .precipitation-chance {

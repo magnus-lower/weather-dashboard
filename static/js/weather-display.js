@@ -15,10 +15,27 @@ const WeatherDisplay = {
         // Oversett værbeskrivelsen til norsk
         const weatherDescription = WeatherTranslations.translate(data.weather[0].description);
 
+        // Use the selected city name from app state if available, otherwise use API response
+        const appState = WeatherApp.getState();
+        let displayCityName = appState.lastCity || data.name;
+        const displayCountry = appState.lastCountry || data.sys.country;
+        
+        // Remove country code from city name if it's already included
+        // For example: "New, Kentucky, US" should become "New, Kentucky"
+        if (displayCityName && displayCountry) {
+            const cityParts = displayCityName.split(', ');
+            const lastPart = cityParts[cityParts.length - 1];
+            
+            // If the last part of city name matches the country, remove it
+            if (lastPart === displayCountry) {
+                displayCityName = cityParts.slice(0, cityParts.length - 1).join(', ');
+            }
+        }
+
         document.getElementById('weatherData').innerHTML = `
             <div class="weather-main">
                 <img src="${iconUrl}" alt="Værikon" class="weather-icon">
-                <h2>${data.name}, ${data.sys.country}</h2>
+                <h2>${displayCityName}, ${displayCountry}</h2>
                 <div class="main-temp">${Math.round(data.main.temp)}${unit}</div>
                 <div class="weather-description">${weatherDescription}</div>
             </div>
