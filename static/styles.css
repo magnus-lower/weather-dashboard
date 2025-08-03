@@ -153,8 +153,9 @@ body {
 }
 
 @keyframes float {
-    0% { transform: translateX(-100px); }
-    100% { transform: translateX(calc(100vw + 100px)); }
+    0% { transform: translateX(-30px); }
+    50% { transform: translateX(30px); }
+    100% { transform: translateX(-30px); }
 }
 
 /* Rain drops */
@@ -489,18 +490,24 @@ body.dark-mode {
     max-width: 640px;
     width: 100%;
     padding: 40px;
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-xl);
+    background: rgba(255, 255, 255, 0.5); /* More opaque for better readability */
+    backdrop-filter: blur(25px) saturate(1.3);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 
+                0 4px 16px rgba(0, 0, 0, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
     border-radius: var(--border-radius-lg);
     transition: var(--transition);
     position: relative;
+    -webkit-backdrop-filter: blur(25px) saturate(1.3);
 }
 
 body.dark-mode .container {
-    background: var(--card-bg-dark);
-    border-color: var(--border-color-dark);
+    background: rgba(30, 41, 59, 0.65); /* More opaque for dark mode readability */
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 
+                0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .header {
@@ -594,35 +601,49 @@ body.dark-mode .favorites-icon {
 input[type="text"] {
     width: 100%;
     padding: 18px 24px;
-    border: 2px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--border-radius);
-    background: var(--card-bg);
+    background: rgba(255, 255, 255, 0.25); /* More opaque for readability */
+    backdrop-filter: blur(12px) saturate(1.1);
     font-size: 1.1rem;
     transition: var(--transition);
     outline: none;
-    backdrop-filter: blur(10px);
     font-weight: 500;
+    color: var(--light-text);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 input[type="text"]:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+    border-color: rgba(30, 64, 175, 0.6);
+    background: rgba(255, 255, 255, 0.35); /* More opaque on focus */
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15),
+                0 8px 24px rgba(0, 0, 0, 0.1);
     transform: translateY(-1px);
 }
 
 input[type="text"]::placeholder {
     color: var(--secondary-color);
     font-weight: 400;
+    opacity: 0.8;
 }
 
 body.dark-mode input[type="text"] {
-    background: var(--card-bg-dark);
-    border-color: var(--border-color-dark);
+    background: rgba(255, 255, 255, 0.15); /* More opaque for dark mode */
+    border-color: rgba(255, 255, 255, 0.2);
     color: var(--dark-text);
+    backdrop-filter: blur(12px) saturate(1.1);
+}
+
+body.dark-mode input[type="text"]:focus {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2),
+                0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-mode input[type="text"]::placeholder {
     color: var(--secondary-light);
+    opacity: 0.7;
 }
 
 /* Input with location button styling */
@@ -1111,9 +1132,28 @@ body.dark-mode .favorites-btn:hover {
     flex: 1;
     justify-content: center;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.3); /* More opaque for better text readability */
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: var(--border-radius-sm);
     position: relative;
+    transition: var(--transition);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.detail-item:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+body.dark-mode .detail-item {
+    background: rgba(255, 255, 255, 0.15); /* More opaque for dark mode text */
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+body.dark-mode .detail-item:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .detail-info {
@@ -1202,20 +1242,38 @@ body.dark-mode .back-to-site-btn:hover {
 }
 
 .forecast-section {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.25); /* More opaque for better readability */
+    backdrop-filter: blur(15px) saturate(1.1);
     border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.35);
     overflow: hidden;
-    box-shadow: var(--shadow);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08),
+                0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+}
+
+.forecast-section:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+body.dark-mode .forecast-section {
+    background: rgba(255, 255, 255, 0.12); /* More opaque for dark mode */
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .forecast-section:hover {
+    background: rgba(255, 255, 255, 0.15);
 }
 
 /* Forbedrede forecast tabs */
 .forecast-tabs {
     display: flex;
-    background: rgba(255, 255, 255, 0.1);
-    border-bottom: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05); /* More transparent */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding: 0;
+    backdrop-filter: blur(8px);
 }
 
 .forecast-tab {
@@ -1234,14 +1292,19 @@ body.dark-mode .back-to-site-btn:hover {
 }
 
 .forecast-tab:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08); /* More transparent hover */
     color: var(--light-text);
     transform: translateY(-1px);
 }
 
 .forecast-tab.active {
     color: var(--primary-color);
-    background: rgba(30, 64, 175, 0.1);
+    background: rgba(30, 64, 175, 0.06); /* More transparent active state */
+    box-shadow: inset 0 2px 0 var(--primary-color);
+}
+
+body.dark-mode .forecast-tab.active {
+    background: rgba(30, 64, 175, 0.08);
 }
 
 .forecast-tab.active::after {
@@ -1391,13 +1454,15 @@ body.dark-mode .back-to-site-btn:hover {
     grid-template-columns: 1.2fr auto 1fr auto;
     align-items: center;
     padding: 24px 28px;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.2); /* More opaque for text readability */
+    backdrop-filter: blur(12px);
     border-radius: var(--border-radius);
     transition: var(--transition);
     gap: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 .daily-card::before {
@@ -1413,9 +1478,18 @@ body.dark-mode .back-to-site-btn:hover {
 }
 
 .daily-card:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.3); /* More visible on hover */
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .daily-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .daily-card:hover {
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .daily-card:hover::before {
@@ -2534,6 +2608,13 @@ body.loading .container {
     .container {
         padding: 15px;
         border-radius: 12px;
+        background: rgba(255, 255, 255, 0.5); /* Same glassmorphism effect as desktop */
+        backdrop-filter: blur(25px) saturate(1.3);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 
+                    0 4px 16px rgba(0, 0, 0, 0.10),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        -webkit-backdrop-filter: blur(25px) saturate(1.3);
     }
     
     .header h1 {
@@ -2575,6 +2656,13 @@ body.loading .container {
 @media (max-width: 768px) and (orientation: landscape) {
     .container {
         padding: 15px;
+        background: rgba(255, 255, 255, 0.5); /* Same glassmorphism effect as desktop */
+        backdrop-filter: blur(25px) saturate(1.3);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 
+                    0 4px 16px rgba(0, 0, 0, 0.10),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        -webkit-backdrop-filter: blur(25px) saturate(1.3);
     }
     
     .header {

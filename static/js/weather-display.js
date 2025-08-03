@@ -630,9 +630,9 @@ const WeatherDisplay = {
             const cloud = document.createElement('div');
             cloud.className = `cloud ${['small', 'medium', 'large'][Math.floor(Math.random() * 3)]}`;
             cloud.style.top = Math.random() * 60 + '%';
-            cloud.style.left = '-100px';
-            cloud.style.animationDelay = Math.random() * 20 + 's';
+            cloud.style.left = Math.random() * 100 + '%'; // Start clouds randomly across screen
             cloud.style.animationDuration = (Math.random() * 30 + 20) + 's';
+            // Removed animationDelay so clouds start immediately
             
             if (isDark) {
                 cloud.style.background = 'rgba(100, 100, 120, 0.6)';
