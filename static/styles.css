@@ -1835,8 +1835,9 @@ body.dark-mode .theme-toggle:hover {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-xl);
     z-index: 1000; /* Higher z-index to ensure it's above everything */
-    max-height: 400px; /* Increased max height */
-    overflow: hidden; /* Remove scrolling */
+    max-height: 60vh; /* Use viewport height for better responsive design */
+    overflow-y: auto; /* Allow scrolling for long lists */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     margin: 0;
     padding: 0;
     list-style: none;
@@ -2574,7 +2575,9 @@ body.loading .container {
     
     /* City suggestions */
     .suggestions-list {
-        max-height: 200px;
+        max-height: 60vh; /* Use viewport height instead of fixed pixels */
+        overflow-y: auto; /* Allow scrolling for long lists */
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     }
     
     .suggestion-item {
@@ -2660,6 +2663,22 @@ body.loading .container {
     /* Larger text for readability */
     input[type="text"] {
         font-size: 16px !important; /* Prevent zoom */
+    }
+    
+    /* Optimize search suggestions for small screens */
+    .suggestions-list {
+        max-height: 50vh; /* Smaller height on very small screens */
+        left: -5px; /* Extend slightly beyond container */
+        right: -5px; /* For better touch targets */
+        border-radius: var(--border-radius-sm);
+    }
+    
+    .suggestion-item {
+        padding: 16px 12px; /* Larger touch targets */
+        font-size: 0.9rem;
+        min-height: 44px; /* iOS touch target minimum */
+        display: flex;
+        align-items: center;
     }
 }
 
