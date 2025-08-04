@@ -2,6 +2,7 @@
 :root {
     --primary-color: #1e40af;
     --primary-hover: #1d4ed8;
+    --primary-dark: #1e3a8a; /* Added missing primary-dark variable */
     --primary-light: #3b82f6;
     --secondary-color: #64748b;
     --secondary-light: #94a3b8;
@@ -1190,32 +1191,42 @@ body.dark-mode .detail-item:hover {
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    background: rgba(30, 64, 175, 0.08);
-    border: 1px solid var(--border-color);
+    background: var(--primary-color) !important; /* Blue background - force override */
+    border: 1px solid var(--primary-color) !important;
     border-radius: var(--border-radius-sm);
-    color: var(--light-text);
+    color: white !important; /* White text on blue background - force override */
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 500;
     transition: var(--transition);
+    backdrop-filter: none !important; /* Disable glassmorphism */
+    -webkit-backdrop-filter: none !important;
 }
 
 .back-to-site-btn:hover {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: white;
+    background: #1e3a8a !important; /* Explicit dark blue hex color - force override */
+    border-color: #1e3a8a !important;
+    color: white !important;
     transform: translateY(-1px);
     box-shadow: var(--shadow);
+    backdrop-filter: none !important; /* Disable glassmorphism on hover */
+    -webkit-backdrop-filter: none !important;
 }
 
 body.dark-mode .back-to-site-btn {
-    background: rgba(30, 64, 175, 0.15);
-    border-color: var(--border-color-dark);
-    color: var(--dark-text);
+    background: var(--primary-color) !important; /* Same solid blue in dark mode - force override */
+    border-color: var(--primary-color) !important;
+    color: white !important;
+    backdrop-filter: none !important; /* Disable glassmorphism */
+    -webkit-backdrop-filter: none !important;
 }
 
 body.dark-mode .back-to-site-btn:hover {
-    color: white;
+    background: #1e3a8a !important; /* Explicit dark blue hex color - force override */
+    border-color: #1e3a8a !important;
+    color: white !important;
+    backdrop-filter: none !important; /* Disable glassmorphism on hover */
+    -webkit-backdrop-filter: none !important;
 }
 
 .back-to-site-btn svg {
