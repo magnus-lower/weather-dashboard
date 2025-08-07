@@ -1,5 +1,5 @@
 # models.py - In-memory data structures (Database-free version)
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict, deque
 import json
 
@@ -14,7 +14,7 @@ class InMemoryCache:
     def get(self, key):
         """Get cached value if not expired"""
         if key in self._cache:
-            if datetime.utcnow() < self._expiry[key]:
+            if datetime.now(timezone.utc) < self._expiry[key]:
                 return self._cache[key]
             else:
                 # Remove expired entry
@@ -25,11 +25,11 @@ class InMemoryCache:
     def set(self, key, value, timeout=300):
         """Set cached value with expiry"""
         self._cache[key] = value
-        self._expiry[key] = datetime.utcnow() + timedelta(seconds=timeout)
+        self._expiry[key] = datetime.now(timezone.utc) + timedelta(seconds=timeout)
 
     def clear_expired(self):
         """Remove expired entries"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expired_keys = [key for key, expiry in self._expiry.items() if now >= expiry]
         for key in expired_keys:
             del self._cache[key]
@@ -64,7 +64,7 @@ class InMemoryAnalytics:
             'user_ip': user_ip,
             'response_time_ms': response_time,
             'endpoint': endpoint,
-            'timestamp': datetime.utcnow()
+            'timestamp': datetime.now(timezone.utc)
         }
 
         self.queries.append(query)
@@ -103,7 +103,7 @@ class InMemoryFavorites:
 
     def add_favorite(self, user_ip, city, country):
         """Add a favorite city for user"""
-        favorite = {'city': city, 'country': country, 'added_at': datetime.utcnow().isoformat()}
+        favorite = {'city': city, 'country': country, 'added_at': datetime.now(timezone.utc).isoformat()}
 
         # Check if already exists
         user_favs = self.favorites[user_ip]

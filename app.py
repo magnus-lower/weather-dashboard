@@ -1,7 +1,7 @@
 # app.py - Main Flask application (Database-free version)
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Flask, render_template, request, jsonify
 from flask_caching import Cache
@@ -53,7 +53,7 @@ def create_app(config_name=None):
     @app.route('/weather', methods=['GET'])
     def get_weather():
         """Get current weather by city"""
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         city = request.args.get('city', '').strip()
         country = request.args.get('country', 'NO').strip()
@@ -92,7 +92,7 @@ def create_app(config_name=None):
     @app.route('/weather_by_coords', methods=['GET'])
     def get_weather_by_coords():
         """Get current weather by coordinates"""
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         lat = request.args.get('lat', '').strip()
         lon = request.args.get('lon', '').strip()
@@ -131,7 +131,7 @@ def create_app(config_name=None):
     @app.route('/forecast', methods=['GET'])
     def get_forecast():
         """Get 5-day weather forecast"""
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         city = request.args.get('city', '').strip()
         country = request.args.get('country', 'NO').strip()
@@ -266,7 +266,7 @@ def create_app(config_name=None):
 
         return jsonify({
             'status': 'healthy',
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'version': '1.2.0',
             'mode': 'in-memory',
             'cache_cleaned': expired_count

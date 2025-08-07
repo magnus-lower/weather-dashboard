@@ -1,6 +1,6 @@
 # utils.py - Utility functions
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import request
 from typing import Optional
 
@@ -133,7 +133,7 @@ def format_wind_speed(speed: float, unit: str = 'metric') -> str:
 
 def calculate_response_time(start_time: datetime) -> float:
     """Calculate response time in milliseconds"""
-    end_time = datetime.utcnow()
+    end_time = datetime.now(timezone.utc)
     delta = end_time - start_time
     return delta.total_seconds() * 1000
 
@@ -153,5 +153,5 @@ def get_client_info() -> dict:
         'ip': get_user_ip(),
         'user_agent': request.headers.get('User-Agent', 'Unknown'),
         'referrer': request.headers.get('Referer', 'Direct'),
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.now(timezone.utc).isoformat()
     }

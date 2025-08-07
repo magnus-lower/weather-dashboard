@@ -28,7 +28,7 @@ const UIUtils = {
     // Show notification/alert (can be extended to use toast notifications)
     showNotification(message, type = 'info') {
         // For now, use browser alert
-        // TODO: Implement custom toast notifications
+        // Implement custom toast notifications if needed in the future
         alert(message);
     },
 
