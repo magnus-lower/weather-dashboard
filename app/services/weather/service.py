@@ -1,24 +1,12 @@
 import json
 import logging
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import requests
 from app.core.cache import analytics, favorites, weather_cache
+from app.models.domain import WeatherData
 
 logger = logging.getLogger(__name__)
-
-@dataclass
-class WeatherData:
-    city: str
-    country: str
-    temperature: float
-    feels_like: float
-    humidity: int
-    description: str
-    wind_speed: float
-    timestamp: datetime
-    icon: str
 
 class WeatherAPIService:
     def __init__(self, api_key: str, base_url: str):

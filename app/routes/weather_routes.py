@@ -2,7 +2,10 @@ import logging
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, render_template, request
 from app.services.weather.service import DatabaseCache, FavoritesService, WeatherAnalytics
-from app.utils.helpers import calculate_response_time, get_user_ip, make_cache_key, validate_city_name, validate_coordinates
+from app.utils.cache_keys import make_cache_key
+from app.utils.request_metadata import get_user_ip
+from app.utils.timing import calculate_response_time
+from app.utils.validation import validate_city_name, validate_coordinates
 
 bp = Blueprint("main", __name__)
 weather_service = None
