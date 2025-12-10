@@ -6,7 +6,6 @@ config_name = os.environ.get('FLASK_CONFIG', 'development')
 app = create_app(config_name)
 
 if __name__ == '__main__':
-    # Development server
     app.run(
         debug=app.config['DEBUG'],
         host='127.0.0.1',
