@@ -1,10 +1,20 @@
+import { WeatherAPI } from './api/weather-api.js';
+import { UIUtils } from './core/ui-utils.js';
+import { WeatherTranslations } from './core/weather-translations.js';
+import { WeatherDisplay } from './ui/weather-display.js';
+import { CitySearch } from './features/city-search.js';
+import { Favorites } from './features/favorites.js';
+import { updateLanguage, initLanguageSwitcher } from './features/language.js';
+import { LocationService } from './features/location-service.js';
+import { initSettingsPanel } from './features/settings-panel.js';
+
 document.addEventListener('DOMContentLoaded', function () {
     document.body.classList.add('loading');
 
     WeatherApp.init();
 });
 
-const WeatherApp = {
+export const WeatherApp = {
     state: {
         lastLat: null,
         lastLon: null,
@@ -20,6 +30,8 @@ const WeatherApp = {
         LocationService.init();
         WeatherDisplay.init();
         CitySearch.init();
+        initLanguageSwitcher();
+        initSettingsPanel();
 
         this.setupEventListeners();
 
@@ -115,3 +127,15 @@ const WeatherApp = {
         }
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.WeatherApp = WeatherApp;
+    window.WeatherAPI = WeatherAPI;
+    window.UIUtils = UIUtils;
+    window.WeatherTranslations = WeatherTranslations;
+    window.WeatherDisplay = WeatherDisplay;
+    window.CitySearch = CitySearch;
+    window.Favorites = Favorites;
+    window.updateLanguage = updateLanguage;
+    window.LocationService = LocationService;
+}

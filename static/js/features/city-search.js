@@ -1,4 +1,7 @@
-const CitySearch = {
+import { UIUtils } from '../core/ui-utils.js';
+import { WeatherAPI } from '../api/weather-api.js';
+
+export const CitySearch = {
     init() {
         console.log('City Search module initialized');
         this.setupEventListeners();
@@ -114,7 +117,7 @@ const CitySearch = {
                 if (currentIndex >= 0) {
                     suggestions[currentIndex].click();
                 } else {
-                    WeatherApp.fetchWeatherForInputCity();
+                    window.WeatherApp.fetchWeatherForInputCity();
                 }
                 break;
             case 'Escape':
@@ -304,7 +307,7 @@ const CitySearch = {
         }
 
         if (cityData && cityData.lat && cityData.lon) {
-            WeatherApp.updateState({
+            window.WeatherApp.updateState({
                 lastCity: cityName,
                 lastCountry: cityData.country || 'NO'
             });
@@ -319,7 +322,7 @@ const CitySearch = {
             const city = cityParts.slice(0, cityParts.length - 1).join(', ');
             const country = cityParts[cityParts.length - 1];
 
-            WeatherApp.updateState({
+            window.WeatherApp.updateState({
                 lastCity: city,
                 lastCountry: country
             });
@@ -428,5 +431,9 @@ const CitySearch = {
         }
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.CitySearch = CitySearch;
+}
 
 window.CitySearch = CitySearch;

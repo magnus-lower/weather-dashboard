@@ -1,4 +1,4 @@
-const UIUtils = {
+export const UIUtils = {
     showLoadingSpinner() {
         const spinner = document.getElementById('loadingSpinner');
         if (spinner) {
@@ -198,3 +198,7 @@ const UIUtils = {
         return new Date(date).toLocaleDateString('en-US', { ...defaultOptions, ...options });
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.UIUtils = UIUtils;
+}

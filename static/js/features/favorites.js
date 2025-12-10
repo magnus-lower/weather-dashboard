@@ -1,4 +1,6 @@
-const Favorites = {
+import { WeatherAPI } from '../api/weather-api.js';
+
+export const Favorites = {
     init() {
         console.log('Favorites module initialized');
         this.loadFavorites();
@@ -171,17 +173,17 @@ const Favorites = {
             }
         }
 
-        if (typeof WeatherApp !== 'undefined') {
-            WeatherApp.updateState({
+        if (window.WeatherApp) {
+            window.WeatherApp.updateState({
                 lastCity: cityName,
                 lastCountry: country
             });
         }
 
-        if (typeof WeatherAPI !== 'undefined') {
-            WeatherAPI.fetchWeatherData('/weather', {city: cityName, country, unit});
-        } else {
-            console.error('WeatherAPI not available');
-        }
+        WeatherAPI.fetchWeatherData('/weather', {city: cityName, country, unit});
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.Favorites = Favorites;
+}

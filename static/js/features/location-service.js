@@ -1,4 +1,7 @@
-const LocationService = {
+import { WeatherAPI } from '../api/weather-api.js';
+import { UIUtils } from '../core/ui-utils.js';
+
+export const LocationService = {
     init() {
         console.log('Location Service module initialized');
         setTimeout(() => {
@@ -20,33 +23,24 @@ const LocationService = {
                 const longitude = position.coords.longitude;
                 console.log('Auto-location successful:', latitude, longitude);
 
-                if (typeof WeatherApp !== 'undefined') {
-                    WeatherApp.updateState({
+                if (window.WeatherApp) {
+                    window.WeatherApp.updateState({
                         lastLat: latitude,
                         lastLon: longitude
                     });
                 }
 
-                if (typeof UIUtils !== 'undefined') {
-                    UIUtils.showLoadingSpinner();
-                }
+                UIUtils.showLoadingSpinner();
 
-                if (typeof WeatherAPI !== 'undefined') {
-                    WeatherAPI.reverseGeocode(latitude, longitude, 'metric');
-                } else {
-                    console.error('WeatherAPI not available');
-                    if (typeof UIUtils !== 'undefined') {
-                        UIUtils.hideLoadingSpinner();
-                    }
-                }
+                WeatherAPI.reverseGeocode(latitude, longitude, 'metric');
             },
             (error) => {
                 console.log('Auto-location failed:', this.getErrorMessage(error));
                 console.log('User can manually enter city name or click location button');
 
-                if (typeof WeatherApp !== 'undefined') {
+                if (window.WeatherApp) {
                     setTimeout(() => {
-                        WeatherApp.hideInitialLoader();
+                        window.WeatherApp.hideInitialLoader();
                     }, 1000);
                 }
             },
@@ -63,12 +57,8 @@ const LocationService = {
 
         if (lat !== null && lon !== null) {
             console.log('Fetching weather for provided coordinates:', lat, lon);
-            if (typeof UIUtils !== 'undefined') {
-                UIUtils.showLoadingSpinner();
-            }
-            if (typeof WeatherAPI !== 'undefined') {
-                WeatherAPI.reverseGeocode(lat, lon, unit);
-            }
+            UIUtils.showLoadingSpinner();
+            WeatherAPI.reverseGeocode(lat, lon, unit);
             return;
         }
 
@@ -81,9 +71,7 @@ const LocationService = {
             return;
         }
 
-        if (typeof UIUtils !== 'undefined') {
-            UIUtils.showLoadingSpinner();
-        }
+        UIUtils.showLoadingSpinner();
 
         console.log('Requesting user location...');
 
@@ -92,8 +80,8 @@ const LocationService = {
                 const latitude = position.coords.latitude;
                 const longitude = position.coords.longitude;
 
-                if (typeof WeatherApp !== 'undefined') {
-                    WeatherApp.updateState({
+                if (window.WeatherApp) {
+                    window.WeatherApp.updateState({
                         lastLat: latitude,
                         lastLon: longitude
                     });
@@ -101,19 +89,10 @@ const LocationService = {
 
                 console.log('Fetched geolocation:', latitude, longitude);
 
-                if (typeof WeatherAPI !== 'undefined') {
-                    WeatherAPI.reverseGeocode(latitude, longitude, unit);
-                } else {
-                    console.error('WeatherAPI not available');
-                    if (typeof UIUtils !== 'undefined') {
-                        UIUtils.hideLoadingSpinner();
-                    }
-                }
+                WeatherAPI.reverseGeocode(latitude, longitude, unit);
             },
             (error) => {
-                if (typeof UIUtils !== 'undefined') {
-                    UIUtils.hideLoadingSpinner();
-                }
+                UIUtils.hideLoadingSpinner();
                 this.handleGeolocationError(error);
             },
             {
@@ -169,30 +148,26 @@ const LocationService = {
     },
 
     refreshWeatherData() {
-        if (typeof WeatherApp === 'undefined') {
+        if (!window.WeatherApp) {
             console.error('WeatherApp not available');
             return;
         }
 
-        const state = WeatherApp.getState();
+        const state = window.WeatherApp.getState();
         const unit = 'metric';
 
         if (state.lastCity && state.lastCountry) {
-            if (typeof WeatherAPI !== 'undefined') {
-                WeatherAPI.fetchWeatherData('/weather', {
-                    city: state.lastCity,
-                    country: state.lastCountry,
-                    unit
-                });
-            }
+            WeatherAPI.fetchWeatherData('/weather', {
+                city: state.lastCity,
+                country: state.lastCountry,
+                unit
+            });
         } else if (state.lastLat !== null && state.lastLon !== null) {
-            if (typeof WeatherAPI !== 'undefined') {
-                WeatherAPI.fetchWeatherData('/weather_by_coords', {
-                    lat: state.lastLat,
-                    lon: state.lastLon,
-                    unit
-                });
-            }
+            WeatherAPI.fetchWeatherData('/weather_by_coords', {
+                lat: state.lastLat,
+                lon: state.lastLon,
+                unit
+            });
         } else {
             const lang = localStorage.getItem('language') || 'no';
             const message = lang === 'no'
@@ -202,3 +177,7 @@ const LocationService = {
         }
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.LocationService = LocationService;
+}

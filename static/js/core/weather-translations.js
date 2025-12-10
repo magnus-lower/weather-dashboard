@@ -1,4 +1,4 @@
-const WeatherTranslations = {
+export const WeatherTranslations = {
     translations: {
         'clear sky': 'klar himmel',
 
@@ -97,6 +97,10 @@ const WeatherTranslations = {
         console.log(`Lagt til oversettelse: "${english}" -> "${norwegian}"`);
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.WeatherTranslations = WeatherTranslations;
+}
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = WeatherTranslations;

@@ -1,4 +1,7 @@
-const WeatherAPI = {
+import { UIUtils } from '../core/ui-utils.js';
+import { WeatherDisplay } from '../ui/weather-display.js';
+
+export const WeatherAPI = {
     fetchWeatherData(endpoint, queryParams) {
         const queryString = new URLSearchParams(queryParams).toString();
         UIUtils.showLoadingSpinner();
@@ -47,10 +50,12 @@ const WeatherAPI = {
 
                 console.log(`Reverse Geocoded City: ${city}, Country: ${country}`);
 
-                WeatherApp.updateState({
-                    lastCity: city,
-                    lastCountry: country
-                });
+                if (window.WeatherApp) {
+                    window.WeatherApp.updateState({
+                        lastCity: city,
+                        lastCountry: country
+                    });
+                }
 
                 const cityInputElement = document.getElementById('cityInput');
                 cityInputElement.value = `${city}, ${country}`;
@@ -170,3 +175,7 @@ const WeatherAPI = {
         return filtered;
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.WeatherAPI = WeatherAPI;
+}

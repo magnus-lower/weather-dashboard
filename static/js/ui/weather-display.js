@@ -1,4 +1,6 @@
-const WeatherDisplay = {
+import { WeatherTranslations } from '../core/weather-translations.js';
+
+export const WeatherDisplay = {
     init() {
         console.log('Weather Display module initialized');
     },
@@ -39,7 +41,7 @@ const WeatherDisplay = {
 
         const weatherDescription = WeatherTranslations.translate(data.weather[0].description);
 
-        const appState = WeatherApp.getState();
+        const appState = window.WeatherApp.getState();
         let displayCityName = appState.lastCity || data.name;
         const displayCountry = appState.lastCountry || data.sys.country;
 
@@ -107,8 +109,8 @@ const WeatherDisplay = {
         this.fetchUVIndex(data.coord.lat, data.coord.lon);
         this.fetchAndDisplayForecast(data.name, data.sys.country);
 
-        if (typeof WeatherApp !== 'undefined') {
-            WeatherApp.hideInitialLoader();
+        if (window.WeatherApp) {
+            window.WeatherApp.hideInitialLoader();
         }
     },
 
@@ -768,3 +770,7 @@ const WeatherDisplay = {
         }
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.WeatherDisplay = WeatherDisplay;
+}
