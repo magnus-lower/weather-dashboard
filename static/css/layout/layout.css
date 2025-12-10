@@ -918,3 +918,4 @@ body.dark-mode .forecast-tab.active {
     background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
     opacity: 0;
     transition: opacity 0.3s ease;
+}
