@@ -14,7 +14,17 @@ def create_app(config_name=None):
     if config_name is None:
         config_name = os.environ.get('FLASK_CONFIG', 'default')
 
-    app = Flask(__name__)
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    project_root = os.path.abspath(os.path.join(base_dir, os.pardir))
+    templates_path = os.path.join(project_root, 'templates')
+    static_path = os.path.join(project_root, 'static')
+
+    app = Flask(
+        __name__,
+        template_folder=templates_path,
+        static_folder=static_path,
+        static_url_path='/static'
+    )
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 

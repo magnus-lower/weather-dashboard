@@ -1,42 +1,35 @@
-// weather-display.js - Handles weather data display
 const WeatherDisplay = {
     init() {
         console.log('Weather Display module initialized');
     },
 
-    // Display current weather data
     displayWeatherData(data) {
-        // Check if it's night time and adjust icon accordingly
         let iconCode = data.weather[0].icon;
-        const currentTime = new Date().getTime() / 1000; // Current time in Unix timestamp
+        const currentTime = new Date().getTime() / 1000;
         const sunriseTime = data.sys.sunrise;
         const sunsetTime = data.sys.sunset;
-        
+
         console.log('Current time:', new Date(currentTime * 1000).toLocaleTimeString());
         console.log('Sunrise:', new Date(sunriseTime * 1000).toLocaleTimeString());
         console.log('Sunset:', new Date(sunsetTime * 1000).toLocaleTimeString());
         console.log('Original icon:', iconCode);
-        
-        // Determine if it's night time
+
         const isNightTime = currentTime < sunriseTime || currentTime > sunsetTime;
-        
-        // If it's night time (after sunset or before sunrise), ensure we use night icon
+
         if (isNightTime) {
             console.log('It is night time - changing to night icon');
-            // Replace day icons with night icons
             if (iconCode.endsWith('d')) {
-                iconCode = iconCode.slice(0, -1) + 'n'; // Change 'd' to 'n'
+                iconCode = iconCode.slice(0, -1) + 'n';
                 console.log('Changed day icon to night icon:', iconCode);
             }
         } else {
             console.log('It is day time - ensuring day icon');
-            // If it's day time, ensure we use day icon
             if (iconCode.endsWith('n')) {
-                iconCode = iconCode.slice(0, -1) + 'd'; // Change 'n' to 'd'
+                iconCode = iconCode.slice(0, -1) + 'd';
                 console.log('Changed night icon to day icon:', iconCode);
             }
         }
-        
+
         const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
         console.log('Final icon URL:', iconUrl);
         const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
@@ -44,21 +37,16 @@ const WeatherDisplay = {
         const unit = '°C';
         const windUnit = 'm/s';
 
-        // Oversett værbeskrivelsen til norsk
         const weatherDescription = WeatherTranslations.translate(data.weather[0].description);
 
-        // Use the selected city name from app state if available, otherwise use API response
         const appState = WeatherApp.getState();
         let displayCityName = appState.lastCity || data.name;
         const displayCountry = appState.lastCountry || data.sys.country;
-        
-        // Remove country code from city name if it's already included
-        // For example: "New, Kentucky, US" should become "New, Kentucky"
+
         if (displayCityName && displayCountry) {
             const cityParts = displayCityName.split(', ');
             const lastPart = cityParts[cityParts.length - 1];
-            
-            // If the last part of city name matches the country, remove it
+
             if (lastPart === displayCountry) {
                 displayCityName = cityParts.slice(0, cityParts.length - 1).join(', ');
             }
@@ -71,7 +59,7 @@ const WeatherDisplay = {
                 <div class="main-temp">${Math.round(data.main.temp)}${unit}</div>
                 <div class="weather-description">${weatherDescription}</div>
             </div>
-            
+
             <div class="weather-details">
                 <div class="detail-grid">
                     <div class="detail-item">
@@ -114,63 +102,48 @@ const WeatherDisplay = {
             </div>
         `;
 
-        // Update the background based on the main weather condition and time of day
         this.updateBackground(data.weather[0].main.toLowerCase(), isNightTime);
-        
-        // Fetch additional data
+
         this.fetchUVIndex(data.coord.lat, data.coord.lon);
         this.fetchAndDisplayForecast(data.name, data.sys.country);
-        
-        // Hide initial loader if this is the first load
+
         if (typeof WeatherApp !== 'undefined') {
             WeatherApp.hideInitialLoader();
         }
     },
 
-    // Fetch UV Index (requires separate API call)
     async fetchUVIndex(lat, lon) {
         try {
-            // Find the UV index element (4th detail item)
             const uvElement = document.querySelector('.detail-item:nth-child(4) .detail-info .detail-value');
             if (uvElement) {
-                // Calculate realistic UV index based on time, season, and location
                 const now = new Date();
                 const hour = now.getHours();
-                const month = now.getMonth() + 1; // 1-12
+                const month = now.getMonth() + 1;
                 const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
-                
+
                 let uvIndex = 0;
-                
-                // Only calculate UV during daylight hours (6 AM - 8 PM)
+
                 if (hour >= 6 && hour <= 20) {
-                    // Base UV calculation considering latitude (higher at equator)
-                    const latFactor = Math.cos(lat * Math.PI / 180); // Latitude effect
-                    
-                    // Seasonal variation (higher in summer)
+                    const latFactor = Math.cos(lat * Math.PI / 180);
+
                     const seasonFactor = Math.cos((dayOfYear - 172) * 2 * Math.PI / 365) * 0.3 + 0.7;
-                    
-                    // Time of day variation (peak at noon)
+
                     const timeFactor = Math.sin((hour - 6) * Math.PI / 14);
-                    
-                    // Calculate base UV (0-11 scale)
+
                     uvIndex = Math.round(10 * latFactor * seasonFactor * timeFactor);
-                    
-                    // Add some realistic variation
+
                     uvIndex += Math.floor(Math.random() * 2) - 1;
-                    
-                    // Clamp to realistic values
+
                     uvIndex = Math.max(0, Math.min(11, uvIndex));
                 }
-                
-                // Update the display
+
                 uvElement.textContent = uvIndex;
                 uvElement.className = `detail-value uv-${this.getUVLevel(uvIndex)}`;
-                
+
                 console.log(`UV Index calculated: ${uvIndex} (${this.getUVLevel(uvIndex)})`);
             }
         } catch (error) {
             console.error('Error calculating UV index:', error);
-            // Fallback to simple random UV
             const uvElement = document.querySelector('.detail-item:nth-child(4) .detail-value');
             if (uvElement) {
                 const hour = new Date().getHours();
@@ -181,7 +154,6 @@ const WeatherDisplay = {
         }
     },
 
-    // Get UV level classification
     getUVLevel(uvIndex) {
         if (uvIndex <= 2) return 'low';
         if (uvIndex <= 5) return 'moderate';
@@ -190,12 +162,11 @@ const WeatherDisplay = {
         return 'extreme';
     },
 
-    // Fetch and display 5-day forecast
     async fetchAndDisplayForecast(city, country) {
         try {
             const response = await fetch(`/forecast?city=${encodeURIComponent(city)}&country=${country}&unit=metric`);
             const forecastData = await response.json();
-            
+
             if (!forecastData.error) {
                 this.displayHourlyAndDailyForecast(forecastData);
             } else {
@@ -206,12 +177,10 @@ const WeatherDisplay = {
         }
     },
 
-    // Display both hourly and daily forecasts
     displayHourlyAndDailyForecast(forecastData) {
         const forecastContainer = document.createElement('div');
         forecastContainer.className = 'forecast-container';
-        
-        // Process data for both hourly and daily forecasts
+
         const hourlyForecasts = this.processHourlyForecastData(forecastData.list);
         const dailyForecasts = this.processDailyForecastData(forecastData.list);
 
@@ -221,39 +190,34 @@ const WeatherDisplay = {
                     <button class="forecast-tab active" data-tab="hourly">Time-for-time prognose</button>
                     <button class="forecast-tab" data-tab="daily">5-dagers prognose</button>
                 </div>
-                
+
                 <div class="forecast-content hourly-forecast active" id="hourlyForecast">
                     <div class="hourly-details" id="hourlyDetails"></div>
                 </div>
-                
+
                 <div class="forecast-content daily-forecast" id="dailyForecast">
                     <div class="daily-cards" id="dailyCards"></div>
                 </div>
             </div>
         `;
 
-        // Remove existing forecast if any
         const existingForecast = document.querySelector('.forecast-container');
         if (existingForecast) {
             existingForecast.remove();
         }
 
-        // Add forecast after weather data
         const weatherData = document.getElementById('weatherData');
         if (weatherData) {
             weatherData.appendChild(forecastContainer);
         }
 
-        // Setup tab switching
         this.setupForecastTabs();
 
-        // Display the forecasts
         this.displayHourlyForecast(hourlyForecasts);
-        console.log('Called displayHourlyForecast from displayHourlyAndDailyForecast'); // Debug
+        console.log('Called displayHourlyForecast from displayHourlyAndDailyForecast');
         this.displayDailyForecast(dailyForecasts);
     },
 
-    // Setup forecast tab switching
     setupForecastTabs() {
         const tabs = document.querySelectorAll('.forecast-tab');
         const contents = document.querySelectorAll('.forecast-content');
@@ -261,32 +225,28 @@ const WeatherDisplay = {
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const targetTab = tab.dataset.tab;
-                
-                // Remove active class from all tabs and contents
+
                 tabs.forEach(t => t.classList.remove('active'));
                 contents.forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked tab and corresponding content
+
                 tab.classList.add('active');
                 document.querySelector(`.${targetTab}-forecast`).classList.add('active');
             });
         });
     },
 
-    // Process hourly forecast data (next 24 hours)
     processHourlyForecastData(forecastList) {
         console.log('Processing hourly forecast with 8 items');
-        return forecastList.slice(0, 8); // Back to 8 items
+        return forecastList.slice(0, 8);
     },
 
-    // Process daily forecast data
     processDailyForecastData(forecastList) {
         const dailyData = {};
-        
+
         forecastList.forEach(item => {
             const date = new Date(item.dt * 1000);
             const dateKey = date.toDateString();
-            
+
             if (!dailyData[dateKey]) {
                 dailyData[dateKey] = {
                     ...item,
@@ -299,7 +259,6 @@ const WeatherDisplay = {
             }
         });
 
-        // Process each day to get min/max temps and most common condition
         return Object.values(dailyData).slice(0, 5).map(day => ({
             ...day,
             main: {
@@ -311,25 +270,23 @@ const WeatherDisplay = {
         }));
     },
 
-    // Get most common weather condition for a day
     getMostCommonCondition(conditions) {
         const conditionCounts = {};
         conditions.forEach(condition => {
             const key = condition.main;
             conditionCounts[key] = (conditionCounts[key] || 0) + 1;
         });
-        
-        const mostCommon = Object.keys(conditionCounts).reduce((a, b) => 
+
+        const mostCommon = Object.keys(conditionCounts).reduce((a, b) =>
             conditionCounts[a] > conditionCounts[b] ? a : b
         );
-        
+
         return conditions.find(c => c.main === mostCommon);
     },
 
-    // Display hourly forecast
     displayHourlyForecast(hourlyForecasts) {
-        console.log('Displaying hourly forecast with', hourlyForecasts.length, 'items'); // Debug
-        
+        console.log('Displaying hourly forecast with', hourlyForecasts.length, 'items');
+
         const hourlyDetails = document.getElementById('hourlyDetails');
         const htmlContent = hourlyForecasts.map(forecast => {
             const time = new Date(forecast.dt * 1000);
@@ -337,10 +294,9 @@ const WeatherDisplay = {
             const temp = Math.round(forecast.main.temp);
             const precipitation = (forecast.rain && forecast.rain['3h']) || 0;
             const windSpeed = forecast.wind.speed.toFixed(1);
-            
-            // Oversett værbeskrivelsen til norsk
+
             const condition = WeatherTranslations.translate(forecast.weather[0].description);
-            
+
             return `
                 <div class="hourly-item">
                     <div class="hour-time">${hour}</div>
@@ -351,10 +307,9 @@ const WeatherDisplay = {
                 </div>
             `;
         }).join('');
-        
+
         hourlyDetails.innerHTML = htmlContent;
-        
-        // Debug: Check how many hourly-item elements actually exist
+
         const actualItems = document.querySelectorAll('.hourly-item');
         console.log('Actual hourly-item elements in DOM:', actualItems.length);
         actualItems.forEach((item, index) => {
@@ -362,10 +317,9 @@ const WeatherDisplay = {
         });
     },
 
-    // Display daily forecast
     displayDailyForecast(dailyForecasts) {
         const dailyCards = document.getElementById('dailyCards');
-        
+
         dailyCards.innerHTML = dailyForecasts.map(forecast => {
             const date = new Date(forecast.dt * 1000);
             const dayName = date.toLocaleDateString('no-NO', { weekday: 'short' });
@@ -373,17 +327,15 @@ const WeatherDisplay = {
             const maxTemp = Math.round(forecast.main.temp_max);
             const minTemp = Math.round(forecast.main.temp_min);
             const iconUrl = `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`;
-            
-            // Oversett værbeskrivelsen til norsk
+
             const description = WeatherTranslations.translate(forecast.weather[0].description);
-            
-            // Simulate precipitation chance
+
             const precipitationChance = Math.floor(Math.random() * 100);
             let precipitationText = '';
             if (precipitationChance > 0) {
                 precipitationText = `${precipitationChance}%`;
             }
-            
+
             return `
                 <div class="daily-card">
                     <div class="daily-date">
@@ -405,23 +357,19 @@ const WeatherDisplay = {
         }).join('');
     },
 
-    // Clear weather data display
     clearWeatherData() {
         document.getElementById('weatherData').innerHTML = '';
     },
 
-    // Update background based on weather condition and time of day
     updateBackground(weatherCondition, isNightTime) {
         const body = document.body;
-        
-        // Remove any existing weather animations
+
         this.clearWeatherAnimations();
-        
-        // Create animation container
+
         const animationContainer = document.createElement('div');
         animationContainer.className = 'weather-animation';
         body.appendChild(animationContainer);
-        
+
         if (isNightTime) {
             this.createNightBackground(weatherCondition, animationContainer);
         } else {
@@ -429,7 +377,6 @@ const WeatherDisplay = {
         }
     },
 
-    // Clear existing weather animations
     clearWeatherAnimations() {
         const existing = document.querySelector('.weather-animation');
         if (existing) {
@@ -437,10 +384,9 @@ const WeatherDisplay = {
         }
     },
 
-    // Create night time backgrounds and animations
     createNightBackground(weatherCondition, container) {
         const body = document.body;
-        
+
         switch (weatherCondition) {
             case 'clear':
                 body.style.background = 'linear-gradient(to bottom, #0F0F23, #191970, #1e1e2e)';
@@ -449,7 +395,7 @@ const WeatherDisplay = {
                 break;
             case 'clouds':
                 body.style.background = 'linear-gradient(to bottom, #2C2C54, #40407a, #57606f)';
-                this.createStars(container, 30); // Fewer stars due to clouds
+                this.createStars(container, 30);
                 this.createClouds(container, true);
                 break;
             case 'rain':
@@ -510,10 +456,9 @@ const WeatherDisplay = {
         }
     },
 
-    // Create day time backgrounds and animations
     createDayBackground(weatherCondition, container) {
         const body = document.body;
-        
+
         switch (weatherCondition) {
             case 'clear':
                 body.style.background = 'linear-gradient(to bottom, #87CEEB, #98D8E8, #B0E0E6)';
@@ -585,20 +530,18 @@ const WeatherDisplay = {
         }
     },
 
-    // Create twinkling stars
     createStars(container, count = 100) {
         for (let i = 0; i < count; i++) {
             const star = document.createElement('div');
             star.className = `star ${['small', 'medium', 'large'][Math.floor(Math.random() * 3)]}`;
             star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 70 + '%'; // Only in upper 70% of screen
+            star.style.top = Math.random() * 70 + '%';
             star.style.animationDelay = Math.random() * 2 + 's';
             star.style.animationDuration = (Math.random() * 3 + 1) + 's';
             container.appendChild(star);
         }
     },
 
-    // Create shooting stars
     createShootingStars(container) {
         const createShootingStar = () => {
             const star = document.createElement('div');
@@ -607,33 +550,29 @@ const WeatherDisplay = {
             star.style.left = '100%';
             star.style.animationDuration = (Math.random() * 2 + 2) + 's';
             container.appendChild(star);
-            
+
             setTimeout(() => {
                 if (star.parentNode) {
                     star.remove();
                 }
             }, 4000);
         };
-        
-        // Create shooting stars at random intervals
+
         setInterval(createShootingStar, Math.random() * 5000 + 3000);
-        
-        // Create initial shooting star
+
         setTimeout(createShootingStar, Math.random() * 2000);
     },
 
-    // Create floating clouds
     createClouds(container, isDark = false) {
         const cloudCount = Math.random() * 8 + 5;
-        
+
         for (let i = 0; i < cloudCount; i++) {
             const cloud = document.createElement('div');
             cloud.className = `cloud ${['small', 'medium', 'large'][Math.floor(Math.random() * 3)]}`;
             cloud.style.top = Math.random() * 60 + '%';
-            cloud.style.left = Math.random() * 100 + '%'; // Start clouds randomly across screen
+            cloud.style.left = Math.random() * 100 + '%';
             cloud.style.animationDuration = (Math.random() * 30 + 20) + 's';
-            // Removed animationDelay so clouds start immediately
-            
+
             if (isDark) {
                 cloud.style.background = 'rgba(100, 100, 120, 0.6)';
                 const before = cloud.querySelector(':before');
@@ -641,12 +580,11 @@ const WeatherDisplay = {
                     before.style.background = 'rgba(100, 100, 120, 0.6)';
                 }
             }
-            
+
             container.appendChild(cloud);
         }
     },
 
-    // Create rain animation
     createRain(container, dropCount = 100) {
         for (let i = 0; i < dropCount; i++) {
             const drop = document.createElement('div');
@@ -658,10 +596,9 @@ const WeatherDisplay = {
         }
     },
 
-    // Create snow animation
     createSnow(container) {
         const snowflakes = ['❄', '❅', '❆', '✻', '✼', '❇', '❈', '❉', '❊', '❋'];
-        
+
         for (let i = 0; i < 50; i++) {
             const flake = document.createElement('div');
             flake.className = 'snowflake';
@@ -674,37 +611,32 @@ const WeatherDisplay = {
         }
     },
 
-    // Create lightning effect
     createLightning(container, intense = false) {
         const createFlash = () => {
             const lightning = document.createElement('div');
             lightning.className = 'lightning';
             container.appendChild(lightning);
-            
+
             setTimeout(() => {
                 if (lightning.parentNode) {
                     lightning.remove();
                 }
             }, 200);
         };
-        
+
         const interval = intense ? (Math.random() * 3000 + 2000) : (Math.random() * 8000 + 5000);
-        
-        // Create lightning at random intervals
+
         setInterval(createFlash, interval);
-        
-        // Create initial flash
+
         setTimeout(createFlash, Math.random() * 3000);
     },
 
-    // Create sun rays
     createSunRays(container) {
         const rays = document.createElement('div');
         rays.className = 'sun-ray';
         container.appendChild(rays);
     },
 
-    // Create mist/fog effect
     createMist(container) {
         for (let i = 0; i < 30; i++) {
             const particle = document.createElement('div');
@@ -719,14 +651,12 @@ const WeatherDisplay = {
         }
     },
 
-    // Create fog bank rolling in
     createFogBank(container) {
         const fogBank = document.createElement('div');
         fogBank.className = 'fog-bank';
         container.appendChild(fogBank);
     },
 
-    // Create dust/sand storm
     createDust(container) {
         for (let i = 0; i < 60; i++) {
             const particle = document.createElement('div');
@@ -741,7 +671,6 @@ const WeatherDisplay = {
         }
     },
 
-    // Create smoke/haze effect
     createSmoke(container) {
         for (let i = 0; i < 25; i++) {
             const particle = document.createElement('div');
@@ -756,7 +685,6 @@ const WeatherDisplay = {
         }
     },
 
-    // Create volcanic ash
     createAsh(container) {
         for (let i = 0; i < 40; i++) {
             const particle = document.createElement('div');
@@ -770,7 +698,6 @@ const WeatherDisplay = {
         }
     },
 
-    // Create hail storm
     createHail(container) {
         for (let i = 0; i < 60; i++) {
             const hail = document.createElement('div');
@@ -782,11 +709,10 @@ const WeatherDisplay = {
         }
     },
 
-    // Create sleet (mix of rain and snow)
     createSleet(container) {
         for (let i = 0; i < 80; i++) {
             const sleet = document.createElement('div');
-            const isRain = Math.random() > 0.4; // 60% rain, 40% ice
+            const isRain = Math.random() > 0.4;
             sleet.className = `sleet ${isRain ? 'rain' : 'ice'}`;
             sleet.style.left = Math.random() * 100 + '%';
             sleet.style.animationDelay = Math.random() * 2 + 's';
@@ -795,11 +721,10 @@ const WeatherDisplay = {
         }
     },
 
-    // Create wind effect
     createWind(container, intense = false) {
         const particleCount = intense ? 40 : 20;
         const speed = intense ? 1 : 1.5;
-        
+
         for (let i = 0; i < particleCount; i++) {
             const particle = document.createElement('div');
             particle.className = 'wind-particle';
@@ -810,13 +735,11 @@ const WeatherDisplay = {
         }
     },
 
-    // Create tornado effect
     createTornado(container) {
         const tornado = document.createElement('div');
         tornado.className = 'tornado';
         container.appendChild(tornado);
-        
-        // Add debris around tornado
+
         for (let i = 0; i < 20; i++) {
             const debris = document.createElement('div');
             debris.className = 'dust-particle';
@@ -830,13 +753,11 @@ const WeatherDisplay = {
         }
     },
 
-    // Create aurora effect
     createAurora(container) {
         const aurora = document.createElement('div');
         aurora.className = 'aurora';
         container.appendChild(aurora);
-        
-        // Add multiple aurora layers for depth
+
         for (let i = 0; i < 3; i++) {
             const layer = document.createElement('div');
             layer.className = 'aurora';
