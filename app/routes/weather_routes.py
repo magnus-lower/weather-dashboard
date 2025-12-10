@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, render_template, request
-from app.services.weather.weather_service import DatabaseCache, FavoritesService, WeatherAnalytics
+from app.services.weather.service import DatabaseCache, FavoritesService, WeatherAnalytics
 from app.utils.helpers import calculate_response_time, get_user_ip, make_cache_key, validate_city_name, validate_coordinates
 
 bp = Blueprint("main", __name__)
@@ -172,7 +172,7 @@ def health_check():
 @bp.route('/clear_cache', methods=['POST'])
 def clear_cache():
     try:
-        from app.models.cache import weather_cache
+        from app.core.cache import weather_cache
         cache_count = weather_cache.clear()
         cache.clear()
         logger.info("Alle cacher tømt")

@@ -1,4 +1,4 @@
-from app.services.weather.weather_service import (
+from app.services.weather.service import (
     DatabaseCache,
     FavoritesService,
     WeatherAPIService,

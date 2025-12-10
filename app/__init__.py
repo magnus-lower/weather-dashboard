@@ -30,7 +30,7 @@ def create_app(config_name=None):
         logger.critical("WEATHER_API_KEY missing from environment variables")
         raise ValueError("WEATHER_API_KEY is missing. Please set it in your .env file.")
 
-    from app.services.weather.weather_service import WeatherAPIService
+    from app.services.weather.service import WeatherAPIService
     weather_service = WeatherAPIService(
         api_key=app.config['WEATHER_API_KEY'],
         base_url=app.config['WEATHER_API_BASE_URL']
@@ -38,7 +38,7 @@ def create_app(config_name=None):
 
     logger.info("Application started successfully (database-free mode)")
 
-    from app.routes.weather_routes import bp as weather_bp, init_app_dependencies, register_error_handlers
+    from app.routes import init_app_dependencies, register_error_handlers, weather_bp
 
     init_app_dependencies(weather_service, cache, logger)
     app.register_blueprint(weather_bp)
