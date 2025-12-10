@@ -40,18 +40,16 @@ A weather dashboard app I built using Flask and JavaScript that shows current we
 weather-dashboard/
 ├── app/
 │   ├── __init__.py               # Application factory
-│   ├── api/
+│   ├── routes/
 │   │   ├── __init__.py
 │   │   ├── health_routes.py      # Health and maintenance endpoints
 │   │   └── weather_routes.py     # Weather-related endpoints
 │   ├── config.py                 # Configuration settings
-│   ├── core/
-│   │   ├── __init__.py
-│   │   └── cache/
-│   │       ├── __init__.py
-│   │       └── memory_cache.py   # In-memory data structures
 │   ├── db/
 │   │   └── __init__.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── cache.py              # In-memory data structures
 │   ├── services/
 │   │   ├── __init__.py
 │   │   └── weather/
@@ -165,13 +163,14 @@ You can switch between them using the `FLASK_CONFIG` environment variable.
 ## How I Built This
 
 ### Backend Structure
-I tried to keep everything organized and easy to understand:
+The Flask backend is organized for high cohesion and loose coupling:
 
-- **app.py** - Main Flask app with all the routes
-- **services.py** - The business logic and API calls to OpenWeatherMap
-- **models.py** - Simple in-memory storage for caching and stats
-- **utils.py** - Helper functions for validation and formatting
-- **config.py** - Different settings for dev/test/production
+- **app/__init__.py** - Application factory wiring configuration, services, and route registration
+- **app/routes/** - Flask blueprints and route registration (`health_routes.py`, `weather_routes.py`)
+- **app/services/** - Business logic and external API orchestration (`weather/service.py`)
+- **app/models/** - In-memory data structures for caching, analytics, and favorites (`cache.py`)
+- **app/utils/** - Helper utilities for validation, formatting, and request context helpers
+- **app/config.py** - Environment-specific configuration profiles
 
 ### Frontend Structure
 The JavaScript is split into modules so it's not one giant mess:

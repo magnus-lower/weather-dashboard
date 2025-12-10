@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from flask import jsonify
 
 from app.services.weather.service import DatabaseCache
-from app.core.cache.memory_cache import weather_cache, analytics, favorites
+from app.models.cache import weather_cache, analytics, favorites
 
 
 def register_health_routes(app, cache, logger):

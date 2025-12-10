@@ -9,8 +9,8 @@ from flask_caching import Cache
 # Import our modules
 from app.config import config
 from app.services.weather.service import WeatherAPIService
-from app.api.weather_routes import register_weather_routes
-from app.api.health_routes import register_health_routes, register_error_handlers
+from app.routes.weather_routes import register_weather_routes
+from app.routes.health_routes import register_health_routes, register_error_handlers
 
 
 def create_app(config_name=None):
