@@ -38,27 +38,77 @@ A weather dashboard app I built using Flask and JavaScript that shows current we
 
 ```
 weather-dashboard/
-├── app.py                 # Main Flask application
-├── config.py             # Configuration settings
-├── models.py             # In-memory data structures
-├── services.py           # Business logic and API services
-├── utils.py              # Utility functions
-├── requirements.txt      # Python dependencies
-├── Dockerfile           # Container configuration
-├── fly.toml             # Fly.io deployment config
+├── app.py                     
+├── Dockerfile                 
+├── fly.toml                   
+├── requirements.txt           
+├── README.md
+├── LICENSE
+├── .env                       
+├── .gitignore
+│
+├── app/                       
+│   ├── __init__.py            
+│   ├── config.py              
+│   │
+│   ├── routes/                
+│   │   └── weather_routes.py
+│   │
+│   ├── services/               
+│   │   └── weather/
+│   │       └── service.py
+│   │
+│   ├── models/                 
+│   │   └── domain.py
+│   │
+│   ├── utils/                  
+│   │   ├── cache_keys.py
+│   │   ├── formatting.py
+│   │   ├── request_metadata.py
+│   │   ├── timing.py
+│   │   └── validation.py
+│   │
+│   └── core/                   
+│       └── cache/
+│           └── memory_cache.py
+│
+├── instance/                   
+│   └── weather_dev.db
+│
 ├── templates/
-│   └── index.html       # Main HTML template
+│   └── index.html           
+│
 └── static/
-    ├── styles.css       # Main stylesheet
-    └── js/
-        ├── main.js              # Application initialization
-        ├── weather-api.js       # API communication
-        ├── weather-display.js   # Weather data presentation
-        ├── city-search.js       # Search functionality
-        ├── location-service.js  # Geolocation services
-        ├── favorites.js         # Favorites management
-        ├── ui-utils.js          # UI utilities
-        └── weather-translations.js # Weather condition translations
+    ├── favicon.svg
+    │
+    ├── css/                 
+    │   ├── base/
+    │   │   └── base.css
+    │   ├── layout/
+    │   │   └── layout.css
+    │   └── components/
+    │       ├── forecast.css
+    │       ├── index.css
+    │       ├── loader.css
+    │       ├── responsive.css
+    │       ├── search.css
+    │       └── theme-toggle.css
+    │
+    └── js/                   
+        ├── main.js           
+        ├── api/
+        │   └── weather-api.js
+        ├── core/
+        │   ├── ui-utils.js
+        │   └── weather-translations.js
+        ├── features/
+        │   ├── city-search.js
+        │   ├── favorites.js
+        │   ├── language.js
+        │   ├── location-service.js
+        │   └── settings-panel.js
+        └── ui/
+            └── weather-display.js
 ```
 
 ## How to Set It Up
