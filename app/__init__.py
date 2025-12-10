@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 
 from flask import Flask
 
@@ -13,29 +12,16 @@ from app.repositories.cache_repository import InMemoryCache
 from app.repositories.favorites_repository import FavoritesRepository
 from app.repositories.weather_api_repository import WeatherAPIRepository
 from app.routes import (
-    analytics_bp,
-    favorites_bp,
-    geo_bp,
-    health_bp,
-    root_bp,
-    weather_bp,
+    create_analytics_blueprint,
+    create_favorites_blueprint,
+    create_geo_blueprint,
+    create_health_blueprint,
+    create_root_blueprint,
+    create_weather_blueprint,
 )
 from app.services.analytics_service import AnalyticsService
 from app.services.favorites_service import FavoritesService
 from app.services.weather_service import WeatherService
-
-
-@dataclass
-class ApplicationContainer:
-    """Simple dependency container for repositories and services."""
-
-    weather_repository: WeatherAPIRepository
-    cache_repository: InMemoryCache
-    analytics_repository: AnalyticsRepository
-    favorites_repository: FavoritesRepository
-    weather_service: WeatherService
-    favorites_service: FavoritesService
-    analytics_service: AnalyticsService
 
 
 def create_app(config_name: str | None = None) -> Flask:
@@ -53,19 +39,30 @@ def create_app(config_name: str | None = None) -> Flask:
         app.logger.critical("WEATHER_API_KEY missing from environment variables")
         raise ValueError("WEATHER_API_KEY is missing. Please set it in your environment.")
 
-    app.extensions["container"] = _build_container(app)
-    _register_blueprints(app)
-    app.logger.info("Refactored application initialized")
+    weather_repo = WeatherAPIRepository(
+        api_key=app.config["WEATHER_API_KEY"],
+        base_url=app.config["WEATHER_API_BASE_URL"],
+        timeout=int(app.config.get("WEATHER_API_TIMEOUT", 10)),
+    )
+    cache_repo = InMemoryCache(
+        default_timeout=int(app.config.get("CACHE_DEFAULT_TIMEOUT", 300))
+    )
+    analytics_repo = AnalyticsRepository()
+    favorites_repo = FavoritesRepository()
+
+    weather_service = WeatherService(weather_repo, cache_repo, analytics_repo)
+    favorites_service = FavoritesService(favorites_repo)
+    analytics_service = AnalyticsService(analytics_repo)
+
+    _register_blueprints(
+        app,
+        weather_service,
+        favorites_service,
+        analytics_service,
+        cache_repo,
+    )
+    app.logger.info("Application initialized")
     return app
-
-
-def get_container(app: Flask) -> ApplicationContainer:
-    """Return the dependency container attached to the Flask app."""
-
-    container = app.extensions.get("container")
-    if not isinstance(container, ApplicationContainer):
-        raise RuntimeError("Application container has not been initialized")
-    return container
 
 
 def _configure_logging(app: Flask) -> None:
@@ -84,44 +81,21 @@ def _register_extensions(app: Flask) -> None:
     cache.init_app(app)
 
 
-def _register_blueprints(app: Flask) -> None:
-    """Register all application blueprints."""
+def _register_blueprints(
+    app: Flask,
+    weather_service: WeatherService,
+    favorites_service: FavoritesService,
+    analytics_service: AnalyticsService,
+    cache_repo: InMemoryCache,
+) -> None:
+    """Register all application blueprints with injected services."""
 
-    app.register_blueprint(root_bp)
-    app.register_blueprint(weather_bp)
-    app.register_blueprint(geo_bp)
-    app.register_blueprint(analytics_bp)
-    app.register_blueprint(favorites_bp)
-    app.register_blueprint(health_bp)
-
-
-def _build_container(app: Flask) -> ApplicationContainer:
-    """Construct repositories and services for dependency injection."""
-
-    weather_repo = WeatherAPIRepository(
-        api_key=app.config["WEATHER_API_KEY"],
-        base_url=app.config["WEATHER_API_BASE_URL"],
-        timeout=int(app.config.get("WEATHER_API_TIMEOUT", 10)),
-    )
-    cache_repo = InMemoryCache(
-        default_timeout=int(app.config.get("CACHE_DEFAULT_TIMEOUT", 300))
-    )
-    analytics_repo = AnalyticsRepository()
-    favorites_repo = FavoritesRepository()
-
-    weather_service = WeatherService(weather_repo, cache_repo, analytics_repo)
-    favorites_service = FavoritesService(favorites_repo)
-    analytics_service = AnalyticsService(analytics_repo)
-
-    return ApplicationContainer(
-        weather_repository=weather_repo,
-        cache_repository=cache_repo,
-        analytics_repository=analytics_repo,
-        favorites_repository=favorites_repo,
-        weather_service=weather_service,
-        favorites_service=favorites_service,
-        analytics_service=analytics_service,
-    )
+    app.register_blueprint(create_root_blueprint())
+    app.register_blueprint(create_weather_blueprint(weather_service))
+    app.register_blueprint(create_geo_blueprint(weather_service))
+    app.register_blueprint(create_analytics_blueprint(analytics_service))
+    app.register_blueprint(create_favorites_blueprint(favorites_service))
+    app.register_blueprint(create_health_blueprint(cache_repo))
 
 
-__all__ = ["create_app", "ApplicationContainer", "get_container"]
+__all__ = ["create_app"]

@@ -3,11 +3,16 @@ from __future__ import annotations
 
 from flask import Blueprint, render_template
 
-root_bp = Blueprint("root", __name__)
 
+def create_root_blueprint() -> Blueprint:
+    """Create the root blueprint that renders the landing page."""
 
-@root_bp.get("/")
-def index() -> str:
-    """Render the application landing page."""
+    root_bp = Blueprint("root", __name__)
 
-    return render_template("index.html")
+    @root_bp.get("/")
+    def index() -> str:
+        """Render the application landing page."""
+
+        return render_template("index.html")
+
+    return root_bp
