@@ -1,50 +1,12 @@
-# app.py - Main Flask application (Database-free version)
-import logging
-import os
 from datetime import datetime, timezone
 
-from flask import Flask, render_template, request, jsonify
-from flask_caching import Cache
+from flask import render_template, request, jsonify
 
-# Import our modules
-from config import config
-from services import WeatherAPIService, WeatherAnalytics, DatabaseCache, FavoritesService
-from utils import make_cache_key, get_user_ip, validate_coordinates, validate_city_name, calculate_response_time
+from app.services.weather.service import WeatherAnalytics, DatabaseCache, FavoritesService
+from app.utils import make_cache_key, get_user_ip, validate_coordinates, validate_city_name, calculate_response_time
 
 
-def create_app(config_name=None):
-    """Application factory pattern"""
-    if config_name is None:
-        config_name = os.environ.get('FLASK_CONFIG', 'default')
-
-    app = Flask(__name__)
-    app.config.from_object(config[config_name])
-    config[config_name].init_app(app)
-
-    # Initialize extensions
-    cache = Cache(app)
-
-    # Configure logging
-    logging.basicConfig(
-        level=getattr(logging, app.config['LOG_LEVEL']),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    logger = logging.getLogger(__name__)
-
-    # Validate API key
-    if not app.config['WEATHER_API_KEY']:
-        logger.critical("WEATHER_API_KEY missing from environment variables")
-        raise ValueError("WEATHER_API_KEY is missing. Please set it in your .env file.")
-
-    # Initialize weather service
-    weather_service = WeatherAPIService(
-        api_key=app.config['WEATHER_API_KEY'],
-        base_url=app.config['WEATHER_API_BASE_URL']
-    )
-
-    logger.info("Application started successfully (database-free mode)")
-
-    # Routes
+def register_weather_routes(app, weather_service, cache, logger):
     @app.route('/')
     def home():
         """Render main page"""
@@ -136,7 +98,6 @@ def create_app(config_name=None):
         city = request.args.get('city', '').strip()
         country = request.args.get('country', 'NO').strip()
         unit = request.args.get('unit', 'metric')
-
         # Validate inputs
         if not city:
             return jsonify({'error': 'By-parameter er påkrevd'}), 400
@@ -258,69 +219,4 @@ def create_app(config_name=None):
             else:
                 return jsonify({'error': 'Favoritt ikke funnet'}), 404
 
-    @app.route('/health', methods=['GET'])
-    def health_check():
-        """Health check endpoint for monitoring"""
-        # Clean up expired cache entries
-        expired_count = DatabaseCache.clear_expired()
-
-        return jsonify({
-            'status': 'healthy',
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'version': '1.2.0',
-            'mode': 'in-memory',
-            'cache_cleaned': expired_count
-        })
-
-    @app.route('/clear_cache', methods=['POST'])
-    def clear_cache():
-        """Clear all cache entries"""
-        try:
-            # Clear in-memory cache
-            from models import weather_cache, analytics, favorites
-            cache_count = weather_cache.clear()
-
-            # Clear Flask cache
-            cache.clear()
-
-            logger.info("Alle cacher tømt")
-            return jsonify({
-                'message': 'Alle cacher tømt',
-                'cleared_entries': cache_count
-            })
-        except Exception as e:
-            logger.error(f"Error clearing cache: {e}")
-            return jsonify({'error': 'Kunne ikke tømme cache'}), 500
-
-    # Error handlers
-    @app.errorhandler(404)
-    def not_found(error):
-        return jsonify({'error': 'Endepunkt ikke funnet'}), 404
-
-    @app.errorhandler(400)
-    def bad_request(error):
-        return jsonify({'error': 'Ugyldig forespørsel'}), 400
-
-    @app.errorhandler(500)
-    def internal_error(error):
-        logger.error(f"Internal server error: {str(error)}")
-        return jsonify({'error': 'Intern serverfeil'}), 500
-
-    @app.errorhandler(Exception)
-    def handle_exception(e):
-        logger.error(f"Unhandled Exception: {str(e)}", exc_info=True)
-        return jsonify({'error': 'En uventet feil oppstod. Vennligst prøv igjen senere.'}), 500
-
     return app
-
-
-config_name = os.environ.get('FLASK_CONFIG', 'development')
-app = create_app(config_name)
-
-if __name__ == '__main__':
-    # Development server
-    app.run(
-        debug=app.config['DEBUG'],
-        host='127.0.0.1',
-        port=5000
-    )

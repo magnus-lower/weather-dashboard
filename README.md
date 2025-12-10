@@ -38,27 +38,45 @@ A weather dashboard app I built using Flask and JavaScript that shows current we
 
 ```
 weather-dashboard/
-├── app.py                 # Main Flask application
-├── config.py             # Configuration settings
-├── models.py             # In-memory data structures
-├── services.py           # Business logic and API services
-├── utils.py              # Utility functions
-├── requirements.txt      # Python dependencies
-├── Dockerfile           # Container configuration
-├── fly.toml             # Fly.io deployment config
+├── app/
+│   ├── __init__.py               # Application factory
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── health_routes.py      # Health and maintenance endpoints
+│   │   └── weather_routes.py     # Weather-related endpoints
+│   ├── config.py                 # Configuration settings
+│   ├── core/
+│   │   ├── __init__.py
+│   │   └── cache/
+│   │       ├── __init__.py
+│   │       └── memory_cache.py   # In-memory data structures
+│   ├── db/
+│   │   └── __init__.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   └── weather/
+│   │       ├── __init__.py
+│   │       └── service.py        # Business logic and API services
+│   └── utils/
+│       └── __init__.py           # Utility functions
+├── requirements.txt              # Python dependencies
+├── Dockerfile                    # Container configuration
+├── fly.toml                      # Fly.io deployment config
 ├── templates/
-│   └── index.html       # Main HTML template
-└── static/
-    ├── styles.css       # Main stylesheet
-    └── js/
-        ├── main.js              # Application initialization
-        ├── weather-api.js       # API communication
-        ├── weather-display.js   # Weather data presentation
-        ├── city-search.js       # Search functionality
-        ├── location-service.js  # Geolocation services
-        ├── favorites.js         # Favorites management
-        ├── ui-utils.js          # UI utilities
-        └── weather-translations.js # Weather condition translations
+│   └── index.html                # Main HTML template
+├── static/
+│   ├── styles.css                # Main stylesheet
+│   └── js/
+│       ├── main.js               # Application initialization
+│       ├── weather-api.js        # API communication
+│       ├── weather-display.js    # Weather data presentation
+│       ├── city-search.js        # Search functionality
+│       ├── location-service.js   # Geolocation services
+│       ├── favorites.js          # Favorites management
+│       ├── ui-utils.js           # UI utilities
+│       └── weather-translations.js # Weather condition translations
+└── tests/
+    └── test_placeholder.py       # Placeholder tests
 ```
 
 ## How to Set It Up
@@ -97,7 +115,7 @@ weather-dashboard/
 
 5. **Start it up**
    ```bash
-   python app.py
+   python -m app
    ```
 
    Open your browser and go to `http://localhost:5000`

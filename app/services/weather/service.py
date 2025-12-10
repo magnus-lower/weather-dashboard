@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 
-from models import weather_cache, analytics, favorites
+from app.core.cache.memory_cache import weather_cache, analytics, favorites
 
 logger = logging.getLogger(__name__)
 
