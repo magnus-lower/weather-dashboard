@@ -2,34 +2,34 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+
 from flask import Blueprint, current_app, jsonify, render_template, request
 
+from app_refactored import get_container
 from app_refactored.models.schemas import WeatherRequest
-from app_refactored.repositories.weather_api_repository import WeatherAPIRepository
-from app_refactored.services.weather_service import WeatherService
 from app_refactored.utils.requests import get_user_ip
 from app_refactored.utils.validators import validate_city_name, validate_coordinates
 
 weather_bp = Blueprint("weather", __name__)
 
 
-def _service() -> WeatherService:
-    config = current_app.config
-    api_repo = WeatherAPIRepository(
-        api_key=config.get("WEATHER_API_KEY"),
-        base_url=config.get("WEATHER_API_BASE_URL"),
-        timeout=config.get("WEATHER_API_TIMEOUT", 10),
-    )
-    return WeatherService(api_repo)
+def _service():
+    """Return the weather service from the application container."""
+
+    return get_container(current_app).weather_service
 
 
 @weather_bp.route("/")
 def home():
+    """Render the home page."""
+
     return render_template("index.html")
 
 
 @weather_bp.route("/weather", methods=["GET"])
 def get_weather():
+    """Return current weather for a requested city."""
+
     start_time = datetime.now(timezone.utc)
     city = request.args.get("city", "").strip()
     country = request.args.get("country", "NO").strip()
@@ -46,12 +46,15 @@ def get_weather():
         WeatherRequest(city=city, country=country, unit=unit, timestamp=start_time),
         get_user_ip(),
     )
-    status = 200 if not result.error else 400
-    return jsonify(result.payload), status
+    if result.error:
+        return jsonify({"error": result.error}), 400
+    return jsonify({"data": result.payload, "from_cache": result.from_cache})
 
 
 @weather_bp.route("/weather_by_coords", methods=["GET"])
 def get_weather_by_coords():
+    """Return current weather for provided coordinates."""
+
     start_time = datetime.now(timezone.utc)
     lat = request.args.get("lat", "").strip()
     lon = request.args.get("lon", "").strip()
@@ -68,12 +71,15 @@ def get_weather_by_coords():
         WeatherRequest(latitude=lat, longitude=lon, unit=unit, timestamp=start_time),
         get_user_ip(),
     )
-    status = 200 if not result.error else 400
-    return jsonify(result.payload), status
+    if result.error:
+        return jsonify({"error": result.error}), 400
+    return jsonify({"data": result.payload, "from_cache": result.from_cache})
 
 
 @weather_bp.route("/forecast", methods=["GET"])
 def get_forecast():
+    """Return forecast for a requested city."""
+
     start_time = datetime.now(timezone.utc)
     city = request.args.get("city", "").strip()
     country = request.args.get("country", "NO").strip()
@@ -90,5 +96,6 @@ def get_forecast():
         WeatherRequest(city=city, country=country, unit=unit, timestamp=start_time),
         get_user_ip(),
     )
-    status = 200 if not result.error else 400
-    return jsonify(result.payload), status
+    if result.error:
+        return jsonify({"error": result.error}), 400
+    return jsonify({"data": result.payload, "from_cache": result.from_cache})

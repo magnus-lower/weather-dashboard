@@ -6,6 +6,8 @@ from typing import Optional, Tuple
 
 
 def validate_coordinates(lat: str, lon: str) -> tuple[bool, Optional[str]]:
+    """Validate coordinate bounds and numeric conversion."""
+
     try:
         lat_val = float(lat)
         lon_val = float(lon)
@@ -19,6 +21,8 @@ def validate_coordinates(lat: str, lon: str) -> tuple[bool, Optional[str]]:
 
 
 def validate_city_name(city: str) -> tuple[bool, Optional[str]]:
+    """Validate a city name for reasonable length and character set."""
+
     if not city or not city.strip():
         return False, "Bynavn kan ikke være tomt"
     city = city.strip()
@@ -35,6 +39,8 @@ def validate_city_name(city: str) -> tuple[bool, Optional[str]]:
 
 
 def validate_country_code(country: str) -> tuple[bool, Optional[str]]:
+    """Validate ISO 3166-1 alpha-2 country codes."""
+
     if not country:
         return True, None
     country = country.strip().upper()
@@ -46,8 +52,18 @@ def validate_country_code(country: str) -> tuple[bool, Optional[str]]:
 
 
 def sanitize_input(value: str) -> str:
+    """Remove potentially dangerous characters from free-text input."""
+
     if not value:
         return ""
     cleaned = re.sub(r"<[^>]*>", "", value)
     cleaned = re.sub(r"[;'\"\\]", "", cleaned)
     return cleaned.strip()
+
+
+__all__ = [
+    "validate_coordinates",
+    "validate_city_name",
+    "validate_country_code",
+    "sanitize_input",
+]

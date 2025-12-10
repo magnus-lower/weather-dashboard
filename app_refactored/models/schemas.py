@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 
 @dataclass
 class WeatherRequest:
-    """Incoming request metadata."""
+    """Incoming request metadata for weather lookups."""
 
     city: Optional[str] = None
     country: str = "NO"
@@ -43,6 +43,14 @@ class FavoriteCity:
 class ServiceResult:
     """Generic service response wrapper."""
 
-    payload: Dict | List
+    payload: Dict | List | None
     from_cache: bool = False
     error: Optional[str] = None
+
+
+__all__ = [
+    "WeatherRequest",
+    "WeatherQueryLog",
+    "FavoriteCity",
+    "ServiceResult",
+]
