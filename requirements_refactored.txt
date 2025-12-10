@@ -1,4 +1,0 @@
-Flask>=2.3
-Flask-Caching>=2.1
-requests>=2.31
-python-dotenv>=1.0

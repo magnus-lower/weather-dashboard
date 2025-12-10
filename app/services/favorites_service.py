@@ -1,7 +1,7 @@
 """Service for managing user favorites."""
 from __future__ import annotations
 
-from app_refactored.repositories.favorites_repository import FavoritesRepository
+from app.repositories.favorites_repository import FavoritesRepository
 
 
 class FavoritesService:

@@ -4,12 +4,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Dict, List
 
-from app_refactored.models.schemas import ServiceResult, WeatherQueryLog, WeatherRequest
-from app_refactored.repositories.analytics_repository import AnalyticsRepository
-from app_refactored.repositories.cache_repository import InMemoryCache
-from app_refactored.repositories.weather_api_repository import WeatherAPIRepository
-from app_refactored.utils.caching import make_cache_key
-from app_refactored.utils.time import calculate_response_time
+from app.models.schemas import ServiceResult, WeatherQueryLog, WeatherRequest
+from app.repositories.analytics_repository import AnalyticsRepository
+from app.repositories.cache_repository import InMemoryCache
+from app.repositories.weather_api_repository import WeatherAPIRepository
+from app.utils.caching import make_cache_key
+from app.utils.time import calculate_response_time
 
 
 class WeatherService:

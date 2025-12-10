@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, current_app, jsonify, request
 
-from app_refactored import get_container
+from app import get_container
 
 analytics_bp = Blueprint("analytics", __name__)
 

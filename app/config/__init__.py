@@ -1,4 +1,6 @@
-"""Configuration package for the Flask application."""
-from app.config.settings import Settings
+"""Configuration helpers for the refactored application."""
+from __future__ import annotations
 
-__all__ = ["Settings"]
+from app.config.settings import Settings, get_settings
+
+__all__ = ["Settings", "get_settings"]

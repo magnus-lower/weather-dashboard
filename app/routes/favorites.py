@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from flask import Blueprint, current_app, jsonify, request
 
-from app_refactored import get_container
-from app_refactored.utils.requests import get_user_ip
-from app_refactored.utils.validators import validate_city_name
+from app import get_container
+from app.utils.requests import get_user_ip
+from app.utils.validators import validate_city_name
 
 favorites_bp = Blueprint("favorites", __name__)
 

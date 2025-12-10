@@ -1,7 +1,7 @@
 """Service layer for analytics operations."""
 from __future__ import annotations
 
-from app_refactored.repositories.analytics_repository import AnalyticsRepository
+from app.repositories.analytics_repository import AnalyticsRepository
 
 
 class AnalyticsService:

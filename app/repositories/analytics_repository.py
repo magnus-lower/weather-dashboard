@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections import defaultdict, deque
 from typing import DefaultDict, Deque, Dict, List
 
-from app_refactored.models.schemas import WeatherQueryLog
+from app.models.schemas import WeatherQueryLog
 
 
 class AnalyticsRepository:

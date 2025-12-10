@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Dict, List
 
-from app_refactored.utils.requests import http_get_json
+from app.utils.requests import http_get_json
 
 logger = logging.getLogger(__name__)
 

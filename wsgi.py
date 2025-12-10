@@ -1,6 +1,10 @@
+"""WSGI entrypoint for running the Flask application."""
+
 from app import create_app
 
-app = create_app()
+
+application = create_app()
+
 
 if __name__ == "__main__":
-    app.run()
+    application.run(host="127.0.0.1", port=5000)

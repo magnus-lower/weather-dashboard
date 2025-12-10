@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import DefaultDict, List
 
-from app_refactored.models.schemas import FavoriteCity
+from app.models.schemas import FavoriteCity
 
 
 class FavoritesRepository:

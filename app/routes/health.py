@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, current_app, jsonify
 
-from app_refactored import get_container
+from app import get_container
 
 health_bp = Blueprint("health", __name__)
 

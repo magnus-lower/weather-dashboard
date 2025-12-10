@@ -3,12 +3,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from flask import Blueprint, current_app, jsonify, render_template, request
+from flask import Blueprint, current_app, jsonify, request
 
-from app_refactored import get_container
-from app_refactored.models.schemas import WeatherRequest
-from app_refactored.utils.requests import get_user_ip
-from app_refactored.utils.validators import validate_city_name, validate_coordinates
+from app import get_container
+from app.models.schemas import WeatherRequest
+from app.utils.requests import get_user_ip
+from app.utils.validators import validate_city_name, validate_coordinates
 
 weather_bp = Blueprint("weather", __name__)
 
@@ -17,13 +17,6 @@ def _service():
     """Return the weather service from the application container."""
 
     return get_container(current_app).weather_service
-
-
-@weather_bp.route("/")
-def home():
-    """Render the home page."""
-
-    return render_template("index.html")
 
 
 @weather_bp.route("/weather", methods=["GET"])
