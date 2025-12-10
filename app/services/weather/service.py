@@ -1,12 +1,13 @@
 # services.py - Business logic services (Database-free version)
-import requests
 import json
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
-from dataclasses import dataclass
 
-from models import weather_cache, analytics, favorites
+import requests
+
+from app.models.cache import weather_cache, analytics, favorites
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class WeatherData:
     """Data class for structured weather information"""
+
     city: str
     country: str
     temperature: float
@@ -51,7 +53,7 @@ class WeatherAPIService:
                         cod_value = int(cod_value)
                     except ValueError:
                         pass
-                
+
                 if cod_value != 200:
                     error_msg = data.get('message', 'Ukjent feil fra vær-API')
                     return {'error': error_msg}
@@ -101,7 +103,7 @@ class WeatherAPIService:
             suggestions = []
             seen_cities = set()  # Track unique city-country combinations
             seen_names = set()   # Track city names to avoid too many duplicates
-            
+
             # Prioritize by population and importance
             data.sort(key=lambda x: (
                 not x.get('name', '').lower().startswith(query.lower()),  # Exact matches first
@@ -109,24 +111,24 @@ class WeatherAPIService:
                 -(x.get('population', 0) or 0),  # Higher population first
                 len(x.get('name', ''))  # Shorter names first
             ))
-            
+
             for item in data:
                 city_name = item.get('name', '')
                 country = item.get('country', '')
                 state = item.get('state', '')
-                
+
                 # Skip if we don't have essential data
                 if not city_name or not country:
                     continue
-                
+
                 # Create unique key for exact deduplication
                 unique_key = f"{city_name.lower()}_{country.lower()}_{state.lower()}"
-                
+
                 # Skip exact duplicates
                 if unique_key in seen_cities:
                     continue
                 seen_cities.add(unique_key)
-                
+
                 # Limit similar city names to avoid repetition
                 city_name_lower = city_name.lower()
                 if city_name_lower in seen_names:
@@ -134,12 +136,12 @@ class WeatherAPIService:
                     existing_countries = [s['country'] for s in suggestions if s['name'].lower() == city_name_lower]
                     if country in existing_countries:
                         continue
-                
+
                 seen_names.add(city_name_lower)
-                
+
                 # Prioritize exact matches at the beginning
                 is_exact_match = city_name.lower().startswith(query.lower())
-                
+
                 # Calculate relevance score
                 relevance_score = 0
                 if is_exact_match:
@@ -150,14 +152,14 @@ class WeatherAPIService:
                     relevance_score += min(item.get('population', 0) / 10000, 20)  # Max 20 points for population
                 if len(city_name) <= 8:  # Shorter names are often more important
                     relevance_score += 10
-                
+
                 # Format display name
                 display_name = city_name
                 if state and state != city_name:
                     display_name = f"{city_name}, {state}, {country}"
                 else:
                     display_name = f"{city_name}, {country}"
-                
+
                 suggestion = {
                     'name': city_name,
                     'country': country,
@@ -170,23 +172,23 @@ class WeatherAPIService:
                     'display_name': display_name
                 }
                 suggestions.append(suggestion)
-            
+
             # Sort by relevance score
             suggestions.sort(key=lambda x: x['relevance_score'], reverse=True)
-            
+
             # Ensure diversity - if we have too many from same country, mix it up
             final_suggestions = []
             country_count = {}
-            
+
             for suggestion in suggestions:
                 country = suggestion['country']
                 if country_count.get(country, 0) < 3 or len(final_suggestions) < limit // 2:
                     final_suggestions.append(suggestion)
                     country_count[country] = country_count.get(country, 0) + 1
-                    
+
                 if len(final_suggestions) >= limit:
                     break
-            
+
             # If we still need more suggestions and have some left, add them
             if len(final_suggestions) < limit:
                 for suggestion in suggestions:
@@ -194,7 +196,7 @@ class WeatherAPIService:
                         final_suggestions.append(suggestion)
                         if len(final_suggestions) >= limit:
                             break
-            
+
             return final_suggestions[:limit]
 
         except Exception as e:
