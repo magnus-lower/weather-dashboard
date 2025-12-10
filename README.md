@@ -38,27 +38,43 @@ A weather dashboard app I built using Flask and JavaScript that shows current we
 
 ```
 weather-dashboard/
-├── app.py                 # Main Flask application
-├── config.py             # Configuration settings
-├── models.py             # In-memory data structures
-├── services.py           # Business logic and API services
-├── utils.py              # Utility functions
-├── requirements.txt      # Python dependencies
-├── Dockerfile           # Container configuration
-├── fly.toml             # Fly.io deployment config
+├── app/
+│   ├── __init__.py               # Application factory
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── health_routes.py      # Health and maintenance endpoints
+│   │   └── weather_routes.py     # Weather-related endpoints
+│   ├── config.py                 # Configuration settings
+│   ├── db/
+│   │   └── __init__.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── cache.py              # In-memory data structures
+│   ├── services/
+│   │   ├── __init__.py
+│   │   └── weather/
+│   │       ├── __init__.py
+│   │       └── service.py        # Business logic and API services
+│   └── utils/
+│       └── __init__.py           # Utility functions
+├── requirements.txt              # Python dependencies
+├── Dockerfile                    # Container configuration
+├── fly.toml                      # Fly.io deployment config
 ├── templates/
-│   └── index.html       # Main HTML template
-└── static/
-    ├── styles.css       # Main stylesheet
-    └── js/
-        ├── main.js              # Application initialization
-        ├── weather-api.js       # API communication
-        ├── weather-display.js   # Weather data presentation
-        ├── city-search.js       # Search functionality
-        ├── location-service.js  # Geolocation services
-        ├── favorites.js         # Favorites management
-        ├── ui-utils.js          # UI utilities
-        └── weather-translations.js # Weather condition translations
+│   └── index.html                # Main HTML template
+├── static/
+│   ├── styles.css                # Main stylesheet
+│   └── js/
+│       ├── main.js               # Application initialization
+│       ├── weather-api.js        # API communication
+│       ├── weather-display.js    # Weather data presentation
+│       ├── city-search.js        # Search functionality
+│       ├── location-service.js   # Geolocation services
+│       ├── favorites.js          # Favorites management
+│       ├── ui-utils.js           # UI utilities
+│       └── weather-translations.js # Weather condition translations
+└── tests/
+    └── test_placeholder.py       # Placeholder tests
 ```
 
 ## How to Set It Up
@@ -97,7 +113,7 @@ weather-dashboard/
 
 5. **Start it up**
    ```bash
-   python app.py
+   python -m app
    ```
 
    Open your browser and go to `http://localhost:5000`
@@ -147,13 +163,14 @@ You can switch between them using the `FLASK_CONFIG` environment variable.
 ## How I Built This
 
 ### Backend Structure
-I tried to keep everything organized and easy to understand:
+The Flask backend is organized for high cohesion and loose coupling:
 
-- **app.py** - Main Flask app with all the routes
-- **services.py** - The business logic and API calls to OpenWeatherMap
-- **models.py** - Simple in-memory storage for caching and stats
-- **utils.py** - Helper functions for validation and formatting
-- **config.py** - Different settings for dev/test/production
+- **app/__init__.py** - Application factory wiring configuration, services, and route registration
+- **app/routes/** - Flask blueprints and route registration (`health_routes.py`, `weather_routes.py`)
+- **app/services/** - Business logic and external API orchestration (`weather/service.py`)
+- **app/models/** - In-memory data structures for caching, analytics, and favorites (`cache.py`)
+- **app/utils/** - Helper utilities for validation, formatting, and request context helpers
+- **app/config.py** - Environment-specific configuration profiles
 
 ### Frontend Structure
 The JavaScript is split into modules so it's not one giant mess:
