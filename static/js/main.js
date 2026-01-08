@@ -9,8 +9,6 @@ import { LocationService } from './features/location-service.js';
 import { initSettingsPanel } from './features/settings-panel.js';
 
 document.addEventListener('DOMContentLoaded', function () {
-    document.body.classList.add('loading');
-
     WeatherApp.init();
 });
 
