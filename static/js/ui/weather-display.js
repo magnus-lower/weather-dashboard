@@ -106,12 +106,21 @@ export const WeatherDisplay = {
 
         const weatherData = document.getElementById('weatherData');
         if (weatherData) {
-            weatherData.classList.remove('anim-ready');
-            requestAnimationFrame(() => {
+            const weatherIcon = weatherData.querySelector('.weather-icon');
+            const setAnimReady = () => {
+                weatherData.classList.remove('anim-ready');
                 requestAnimationFrame(() => {
-                    weatherData.classList.add('anim-ready');
+                    requestAnimationFrame(() => {
+                        weatherData.classList.add('anim-ready');
+                    });
                 });
-            });
+            };
+
+            if (weatherIcon && !weatherIcon.complete) {
+                weatherIcon.addEventListener('load', setAnimReady, { once: true });
+            } else {
+                setAnimReady();
+            }
         }
 
         this.updateBackground(data.weather[0].main.toLowerCase(), isNightTime);
