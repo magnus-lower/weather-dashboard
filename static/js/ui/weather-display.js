@@ -368,12 +368,9 @@ export const WeatherDisplay = {
 
         this.clearWeatherAnimations();
 
-        const animationContainer = document.getElementById('weatherAnimation') || document.querySelector('.weather-animation');
-        if (!animationContainer) {
-            return;
-        }
+        const animationContainer = document.createElement('div');
         animationContainer.className = 'weather-animation';
-        animationContainer.innerHTML = '';
+        body.appendChild(animationContainer);
 
         if (isNightTime) {
             this.createNightBackground(weatherCondition, animationContainer);
@@ -383,9 +380,9 @@ export const WeatherDisplay = {
     },
 
     clearWeatherAnimations() {
-        const existing = document.getElementById('weatherAnimation') || document.querySelector('.weather-animation');
+        const existing = document.querySelector('.weather-animation');
         if (existing) {
-            existing.innerHTML = '';
+            existing.remove();
         }
     },
 
