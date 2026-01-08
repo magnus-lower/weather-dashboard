@@ -580,11 +580,6 @@ body.dark-mode .favorites-btn:hover {
     box-shadow: none;
     padding: 0;
     border-radius: 0;
-    visibility: hidden;
-}
-
-#weatherData.data-ready {
-    visibility: visible;
 }
 
 .weather-main {
