@@ -108,10 +108,10 @@ export const WeatherDisplay = {
         if (weatherData) {
             const weatherIcon = weatherData.querySelector('.weather-icon');
             const setAnimReady = () => {
-                weatherData.classList.remove('anim-ready');
+                weatherData.classList.remove('anim-ready', 'data-ready');
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        weatherData.classList.add('anim-ready');
+                        weatherData.classList.add('anim-ready', 'data-ready');
                     });
                 });
             };
@@ -381,7 +381,7 @@ export const WeatherDisplay = {
     clearWeatherData() {
         const weatherData = document.getElementById('weatherData');
         weatherData.innerHTML = '';
-        weatherData.classList.remove('anim-ready');
+        weatherData.classList.remove('anim-ready', 'data-ready');
     },
 
     updateBackground(weatherCondition, isNightTime) {
