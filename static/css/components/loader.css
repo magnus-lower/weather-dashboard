@@ -74,7 +74,7 @@ body.dark-mode .initial-loader {
 
 
 body.loading .app-wrapper {
-    visibility: hidden;
+    display: none;
 }
 
 
