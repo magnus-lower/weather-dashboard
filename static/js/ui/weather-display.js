@@ -104,6 +104,16 @@ export const WeatherDisplay = {
             </div>
         `;
 
+        const weatherData = document.getElementById('weatherData');
+        if (weatherData) {
+            weatherData.classList.remove('anim-ready');
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    weatherData.classList.add('anim-ready');
+                });
+            });
+        }
+
         this.updateBackground(data.weather[0].main.toLowerCase(), isNightTime);
 
         this.fetchUVIndex(data.coord.lat, data.coord.lon);
@@ -360,7 +370,9 @@ export const WeatherDisplay = {
     },
 
     clearWeatherData() {
-        document.getElementById('weatherData').innerHTML = '';
+        const weatherData = document.getElementById('weatherData');
+        weatherData.innerHTML = '';
+        weatherData.classList.remove('anim-ready');
     },
 
     updateBackground(weatherCondition, isNightTime) {

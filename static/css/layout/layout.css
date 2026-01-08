@@ -594,7 +594,7 @@ body.dark-mode .favorites-btn:hover {
     height: 120px;
     margin: 0 auto;
     display: block;
-    animation: weatherIconFloat 2.5s ease-in-out infinite;
+    animation: none;
     filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
             drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
     transition: transform 0.3s ease;
@@ -603,6 +603,10 @@ body.dark-mode .favorites-btn:hover {
     background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 70%);
     border-radius: 50%;
     padding: 10px;
+}
+
+#weatherData.anim-ready .weather-icon {
+    animation: weatherIconFloat 2.5s ease-in-out infinite;
 }
 
 @keyframes weatherIconFloat {
