@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 from app.utils import formatting
 
 
@@ -17,14 +19,16 @@ def test_format_wind_speed_imperial():
     assert formatting.format_wind_speed(10, unit="imperial") == "10.0 mph"
 
 
-def test_calculate_response_time(app):
+def test_calculate_response_time(app, monkeypatch):
     from datetime import datetime, timedelta, timezone
     from app.utils.timing import calculate_response_time
 
-    start_time = datetime.now(timezone.utc) - timedelta(seconds=1)
-    elapsed_ms = calculate_response_time(start_time)
-
-    assert 900 <= elapsed_ms <= 1100
+    end_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    clock = Mock()
+    clock.now.return_value = end_time
+    monkeypatch.setattr('app.utils.timing.datetime', clock)
+    elapsed_ms = calculate_response_time(end_time - timedelta(seconds=1))
+    assert elapsed_ms == 1000
 
 
 def test_get_user_ip_from_headers(app):

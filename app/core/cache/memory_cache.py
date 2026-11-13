@@ -15,6 +15,11 @@ class InMemoryCache:
         return None
 
     def set(self, key, value, timeout=300):
+        self.clear_expired()
+        if key not in self._cache and len(self._cache) >= 512:
+            oldest = next(iter(self._cache))
+            del self._cache[oldest]
+            del self._expiry[oldest]
         self._cache[key] = value
         self._expiry[key] = datetime.now(timezone.utc) + timedelta(seconds=timeout)
 
@@ -68,30 +73,5 @@ class InMemoryAnalytics:
         sorted_cities = sorted(self.city_counts.items(), key=lambda x: x[1], reverse=True)
         return [{'city': city, 'count': count} for city, count in sorted_cities[:limit]]
 
-class InMemoryFavorites:
-    def __init__(self):
-        self.favorites = defaultdict(list)
-
-    def get_user_favorites(self, user_ip):
-        return self.favorites.get(user_ip, [])
-
-    def add_favorite(self, user_ip, city, country):
-        favorite = {'city': city, 'country': country, 'added_at': datetime.now(timezone.utc).isoformat()}
-        user_favs = self.favorites[user_ip]
-        for fav in user_favs:
-            if fav['city'].lower() == city.lower() and fav['country'].lower() == country.lower():
-                return False
-        user_favs.append(favorite)
-        return True
-
-    def remove_favorite(self, user_ip, city, country):
-        user_favs = self.favorites[user_ip]
-        for index, fav in enumerate(user_favs):
-            if fav['city'].lower() == city.lower() and fav['country'].lower() == country.lower():
-                del user_favs[index]
-                return True
-        return False
-
 weather_cache = InMemoryCache()
 analytics = InMemoryAnalytics()
-favorites = InMemoryFavorites()

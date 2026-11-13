@@ -2,74 +2,41 @@ import { UIUtils } from '../core/ui-utils.js';
 import { WeatherDisplay } from '../ui/weather-display.js';
 
 export const WeatherAPI = {
-    fetchWeatherData(endpoint, queryParams) {
-        const queryString = new URLSearchParams(queryParams).toString();
+    async fetchWeatherData(endpoint, queryParams) {
+        const requestId = this.requestId = (this.requestId || 0) + 1;
+        this.weatherController?.abort();
+        this.weatherController = new AbortController();
+        WeatherDisplay.cancelForecast();
         UIUtils.showLoadingSpinner();
-
-        fetch(`${endpoint}?${queryString}`)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then((data) => {
-                UIUtils.hideLoadingSpinner();
-                if (data.error) {
-                    WeatherDisplay.clearWeatherData();
-                    alert(data.error);
-                } else {
-                    WeatherDisplay.displayWeatherData(data);
-                }
-            })
-            .catch(error => {
-                UIUtils.hideLoadingSpinner();
-                WeatherDisplay.clearWeatherData();
-                alert('Det oppstod en feil ved henting av værdata. Vennligst prøv igjen senere.');
-                console.error(error);
+        try {
+            const query = new URLSearchParams(queryParams);
+            const response = await fetch(`${endpoint}?${query}`, {signal: this.weatherController.signal});
+            const data = await response.json();
+            if (requestId !== this.requestId) return;
+            if (!response.ok || data.error) {
+                throw new Error(data.error || 'Kunne ikke hente værdata.');
+            }
+            window.WeatherApp?.updateState({
+                lastCity: data.name, lastCountry: data.sys?.country,
+                lastLat: data.coord?.lat ?? null, lastLon: data.coord?.lon ?? null
             });
-    },
-
-    reverseGeocode(lat, lon, unit) {
-        return fetch(`/reverse_geocode?lat=${lat}&lon=${lon}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.error) {
-                    console.error("Reverse geocoding failed:", data.error);
-                    UIUtils.hideLoadingSpinner();
-                    return;
-                }
-
-                const city = data.city || data.name;
-                const country = data.country;
-
-                console.log(`Reverse Geocoded City: ${city}, Country: ${country}`);
-
-                if (window.WeatherApp) {
-                    window.WeatherApp.updateState({
-                        lastCity: city,
-                        lastCountry: country
-                    });
-                }
-
-                const cityInputElement = document.getElementById('cityInput');
-                cityInputElement.value = `${city}, ${country}`;
-
-                if (window.CitySearch && window.CitySearch.positionClearButton) {
-                    window.CitySearch.positionClearButton(cityInputElement);
-                }
-
-                this.fetchWeatherData('/weather_by_coords', { lat, lon, unit });
-            })
-            .catch(error => {
-                console.error("Error in reverse geocoding:", error);
+            if (endpoint === '/weather_by_coords') {
+                const input = document.getElementById('cityInput');
+                input.value = `${data.name}, ${data.sys.country}`;
+                window.CitySearch?.positionClearButton(input);
+            }
+            WeatherDisplay.displayWeatherData(data);
+            return data;
+        } catch (error) {
+            if (requestId !== this.requestId || error.name === 'AbortError') return;
+            WeatherDisplay.clearWeatherData();
+            alert(error.message || 'Det oppstod en feil ved henting av værdata.');
+        } finally {
+            if (requestId === this.requestId) {
                 UIUtils.hideLoadingSpinner();
-            });
+                window.WeatherApp?.hideInitialLoader();
+            }
+        }
     },
 
     fetchCitySuggestions(query) {
@@ -90,16 +57,6 @@ export const WeatherAPI = {
         if (!this.suggestionCache) {
             this.suggestionCache = {};
         }
-
-        if (this.lastRequestTime && Date.now() - this.lastRequestTime < 500) {
-            clearTimeout(this.throttleTimeout);
-            return new Promise((resolve) => {
-                this.throttleTimeout = setTimeout(() => {
-                    this.fetchCitySuggestions(query).then(resolve);
-                }, 500);
-            });
-        }
-        this.lastRequestTime = Date.now();
 
         return fetch(`/city_suggestions?q=${encodeURIComponent(query)}`)
             .then(response => {
@@ -135,7 +92,7 @@ export const WeatherAPI = {
     },
 
     filterAndDeduplicateSuggestions(suggestions, query) {
-        if (!suggestions || suggestions.length === 0) return [];
+        if (!Array.isArray(suggestions) || suggestions.length === 0) return [];
 
         const seen = new Set();
         const filtered = [];

@@ -1,4 +1,11 @@
 export const UIUtils = {
+    createElement(tag, className = '', text = null) {
+        const element = document.createElement(tag);
+        element.className = className;
+        if (text !== null) element.textContent = String(text);
+        return element;
+    },
+
     showLoadingSpinner() {
         const spinner = document.getElementById('loadingSpinner');
         if (spinner) {

@@ -43,7 +43,8 @@ def create_app(config_name=None):
     from app.services.weather.service import WeatherAPIService
     weather_service = WeatherAPIService(
         api_key=app.config['WEATHER_API_KEY'],
-        base_url=app.config['WEATHER_API_BASE_URL']
+        base_url=app.config['WEATHER_API_BASE_URL'],
+        timeout=app.config['WEATHER_API_TIMEOUT']
     )
 
     logger.info("Application started successfully (database-free mode)")

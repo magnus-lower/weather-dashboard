@@ -4,13 +4,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-production'
+    SECRET_KEY = os.environ.get('SECRET_KEY')
     CACHE_TYPE = 'SimpleCache'
     CACHE_DEFAULT_TIMEOUT = 300
     WEATHER_API_KEY = os.environ.get('API_KEY')
     WEATHER_API_BASE_URL = 'https://api.openweathermap.org/data/2.5/'
     WEATHER_API_TIMEOUT = 10
-    RATELIMIT_STORAGE_URL = 'memory://'
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
 
     @staticmethod

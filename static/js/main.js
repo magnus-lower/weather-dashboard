@@ -26,6 +26,8 @@ export const WeatherApp = {
     async init() {
         console.log('Initializing Weather Dashboard...');
 
+        setTimeout(() => this.hideInitialLoader(), 10000);
+
         Favorites.init();
         LocationService.init();
         WeatherDisplay.init();
@@ -42,9 +44,6 @@ export const WeatherApp = {
             }
         }, 2000);
 
-        setTimeout(() => {
-            this.hideInitialLoader();
-        }, 10000);
 
     },
 
@@ -57,17 +56,11 @@ export const WeatherApp = {
             });
         }
 
-        document.getElementById('cityInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.fetchWeatherForInputCity();
-            }
-        });
-
         const locationBtn = document.getElementById('locationBtn');
         if (locationBtn) {
             locationBtn.addEventListener('click', (e) => {
                 console.log('Location button clicked');
-                e.target.blur();
+                e.currentTarget.blur();
                 LocationService.fetchWeatherByLocation();
             });
         }
@@ -84,8 +77,6 @@ export const WeatherApp = {
 
         console.log('Fetching weather for city:', city);
 
-        this.state.lastCity = city;
-
         const parts = city.split(',');
         const cityName = parts[0].trim();
         let country = 'NO';
@@ -94,7 +85,8 @@ export const WeatherApp = {
             country = parts[parts.length - 1].trim();
         }
 
-        WeatherAPI.fetchWeatherData('/weather', { city: cityName, unit: 'metric' });
+        this.updateState({lastCity: cityName, lastCountry: country.toUpperCase(), lastLat: null, lastLon: null});
+        WeatherAPI.fetchWeatherData('/weather', {city: cityName, country, unit: 'metric'});
     },
 
     updateState(newState) {

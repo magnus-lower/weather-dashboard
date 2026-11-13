@@ -16,16 +16,14 @@ def validate_coordinates(lat: str, lon: str) -> tuple[bool, Optional[str]]:
 
 
 def validate_city_name(city: str) -> tuple[bool, Optional[str]]:
-    if not city or not city.strip():
+    if not isinstance(city, str) or not city.strip():
         return False, "Bynavn kan ikke være tomt"
     city = city.strip()
     if len(city) < 2:
         return False, "Bynavn må være minst 2 tegn"
     if len(city) > 100:
         return False, "Bynavn er for langt"
-    if not re.match(
-            r"^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽæøå\s\-'.,]+$",
-            city):
+    if not all(char.isalpha() or char in " -'.," for char in city):
         return False, "Bynavn inneholder ugyldige tegn"
     return True, None
 
@@ -38,6 +36,18 @@ def validate_country_code(country: str) -> tuple[bool, Optional[str]]:
         return False, "Landkode må være 2 tegn (ISO 3166-1 alpha-2)"
     if not re.match(r"^[A-Z]{2}$", country):
         return False, "Landkode må kun inneholde bokstaver"
+    return True, None
+
+
+def validate_unit(unit: str) -> tuple[bool, Optional[str]]:
+    if unit not in ('metric', 'imperial', 'standard'):
+        return False, "Ugyldig måleenhet"
+    return True, None
+
+
+def validate_search_query(query: str) -> tuple[bool, Optional[str]]:
+    if len(query) > 100 or any(ord(char) < 32 for char in query):
+        return False, "Ugyldig søkeord"
     return True, None
 
 

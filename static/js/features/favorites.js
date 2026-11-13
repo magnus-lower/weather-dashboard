@@ -1,4 +1,5 @@
 import { WeatherAPI } from '../api/weather-api.js';
+import { UIUtils } from '../core/ui-utils.js';
 
 export const Favorites = {
     init() {
@@ -15,12 +16,18 @@ export const Favorites = {
         if (favoritesBtn) {
             favoritesBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                e.target.blur();
                 this.toggleFavoritesDropdown();
             });
         } else {
             console.error("❌ `favoritesBtn` not found in the DOM.");
         }
+
+        favoritesDropdown?.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                this.closeFavoritesDropdown();
+                favoritesBtn.focus();
+            }
+        });
 
         document.addEventListener('click', (e) => {
             if (favoritesDropdown && !favoritesBtn?.contains(e.target) && !favoritesDropdown?.contains(e.target)) {
@@ -50,6 +57,7 @@ export const Favorites = {
 
             this.updateFavoritesDisplay();
             dropdown.classList.add('visible');
+            document.getElementById('favoritesBtn').setAttribute('aria-expanded', 'true');
         }
     },
 
@@ -57,6 +65,7 @@ export const Favorites = {
         const dropdown = document.getElementById('favoritesDropdown');
         if (dropdown) {
             dropdown.classList.remove('visible');
+            document.getElementById('favoritesBtn').setAttribute('aria-expanded', 'false');
         }
     },
 
@@ -67,50 +76,54 @@ export const Favorites = {
         const favorites = this.loadFavorites();
 
         if (favorites.length === 0) {
-            favoritesList.innerHTML = `
-                <div class="no-favorites" data-en="No favorites added yet" data-no="Ingen favoritter lagt til ennå">
-                    Ingen favoritter lagt til ennå
-                </div>
-            `;
+            const empty = UIUtils.createElement('div', 'no-favorites', 'Ingen favoritter lagt til ennå');
+            empty.setAttribute('data-en', 'No favorites added yet');
+            empty.setAttribute('data-no', 'Ingen favoritter lagt til ennå');
+            favoritesList.replaceChildren(empty);
             return;
         }
 
-        favoritesList.innerHTML = favorites.map(city => `
-            <div class="favorite-item" data-city="${city}">
-                <div class="favorite-name">
-                    <div class="favorite-star-indicator"></div>
-                    <span>${city}</span>
-                </div>
-                <button class="favorite-remove" title="Fjern fra favoritter" data-city="${city}">
-                    <span class="remove-text">Fjern</span>
-                </button>
-            </div>
-        `).join('');
-
-        favoritesList.querySelectorAll('.favorite-item').forEach(item => {
-            const cityName = item.dataset.city;
-            item.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('favorite-remove')) {
-                    this.fetchWeatherByCity(cityName);
-                    this.closeFavoritesDropdown();
-                }
+        const create = UIUtils.createElement;
+        favoritesList.replaceChildren(...favorites.map(city => {
+            const item = create('div', 'favorite-item');
+            const select = create('button', 'favorite-name');
+            select.type = 'button';
+            select.append(create('span', 'favorite-star-indicator'), create('span', '', city));
+            select.addEventListener('click', () => {
+                this.fetchWeatherByCity(city);
+                this.closeFavoritesDropdown();
             });
-        });
-
-        favoritesList.querySelectorAll('.favorite-remove').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const cityName = btn.dataset.city;
-                this.removeFromFavorites(cityName);
-                this.updateFavoritesDisplay();
+            const remove = create('button', 'favorite-remove');
+            remove.type = 'button';
+            remove.title = 'Fjern fra favoritter';
+            remove.setAttribute('aria-label', `Fjern ${city} fra favoritter`);
+            remove.appendChild(create('span', 'remove-text', 'Fjern'));
+            remove.addEventListener('click', () => {
+                this.removeFromFavorites(city);
+                document.getElementById('favoritesList').querySelector('button')?.focus();
             });
-        });
+            item.append(select, remove);
+            return item;
+        }));
     },
 
     loadFavorites() {
-        const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        console.log('User Favorites:', favorites);
-        return favorites;
+        try {
+            const saved = JSON.parse(localStorage.getItem('favorites'));
+            return Array.isArray(saved)
+                ? saved.filter(city => typeof city === 'string' && city.trim().length > 0)
+                : [];
+        } catch {
+            return [];
+        }
+    },
+
+    saveFavorites(favorites) {
+        try {
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+        } catch {
+            alert('Favorittene kunne ikke lagres i nettleseren.');
+        }
     },
 
     isCityInFavorites(city) {
@@ -142,7 +155,7 @@ export const Favorites = {
 
         if (!favorites.includes(cityName)) {
             favorites.push(cityName);
-            localStorage.setItem('favorites', JSON.stringify(favorites));
+            this.saveFavorites(favorites);
             this.updateFavoritesDisplay();
         }
     },
@@ -150,7 +163,7 @@ export const Favorites = {
     removeFromFavorites(city) {
         let favorites = this.loadFavorites();
         favorites = favorites.filter(favCity => favCity !== city);
-        localStorage.setItem('favorites', JSON.stringify(favorites));
+        this.saveFavorites(favorites);
         this.updateFavoritesDisplay();
     },
 

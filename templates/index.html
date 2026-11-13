@@ -24,10 +24,11 @@
                     <span>Tilbake til nettsiden</span>
                 </a>
             </div>
+            <p class="project-info">Dette er en værapp jeg har laget som et hobbyprosjekt. Værdataene kommer fra OpenWeather.</p>
             <div class="input-group">
                 <label for="cityInput" class="visually-hidden">Skriv inn bynavn</label>
                 <div class="input-with-location">
-                    <input type="text" id="cityInput" placeholder="Skriv inn bynavn eller bruk lokasjonsknappen" aria-autocomplete="list" aria-controls="citySuggestions">
+                    <input type="text" id="cityInput" placeholder="Skriv inn bynavn eller bruk lokasjonsknappen" role="combobox" aria-autocomplete="list" aria-controls="citySuggestions" aria-expanded="false" autocomplete="off">
                     <button id="clearInputBtn" type="button" class="clear-input-btn" title="Tøm søkefelt" aria-label="Tøm søkefelt">
                         ×
                     </button>
@@ -41,7 +42,7 @@
                             </button>
                         </div>
                         <div class="favorites-dropdown-container">
-                            <button id="favoritesBtn" type="button" class="favorites-btn" title="Vis favoritter" aria-label="Vis favoritter">
+                            <button id="favoritesBtn" type="button" class="favorites-btn" title="Vis favoritter" aria-label="Vis favoritter" aria-controls="favoritesDropdown" aria-expanded="false">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                                 </svg>
@@ -61,7 +62,7 @@
                 </div>
                 <ul id="citySuggestions" class="suggestions-list" role="listbox"></ul>
             </div>
-            <div id="weatherData"></div>
+            <div id="weatherData" aria-live="polite"></div>
             <div id="loadingSpinner" class="spinner-overlay" style="display:none;">
                 <div class="spinner"></div>
             </div>

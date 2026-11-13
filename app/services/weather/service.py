@@ -1,67 +1,74 @@
-import json
 import logging
-from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import requests
-from app.core.cache import analytics, favorites, weather_cache
-from app.models.domain import WeatherData
+from app.core.cache import analytics, weather_cache
 
 logger = logging.getLogger(__name__)
 
 class WeatherAPIService:
-    def __init__(self, api_key: str, base_url: str):
+    def __init__(self, api_key: str, base_url: str, timeout: int = 10):
         self.api_key = api_key
-        self.base_url = base_url
+        self.base_url = base_url.replace('http://', 'https://').rstrip('/') + '/'
+        self.timeout = timeout
         self.session = requests.Session()
-        self.session.timeout = 10
+        # urllib3 debug messages include request targets, which contain the API key.
+        logging.getLogger('urllib3').setLevel(logging.WARNING)
 
-    def fetch_weather_data(self, url: str) -> Dict:
+    def _get_json(self, url: str, params: Dict):
+        response = self.session.get(
+            url, params={**params, 'appid': self.api_key},
+            timeout=self.timeout, allow_redirects=False
+        )
+        response.raise_for_status()
+        if 300 <= response.status_code < 400:
+            raise ValueError("Unexpected upstream redirect")
+        return response.json()
+
+    @staticmethod
+    def _api_error(error: Exception) -> Dict:
+        # Exception strings and tracebacks may contain credential-bearing URLs.
+        logger.warning("Weather API request failed (%s)", type(error).__name__)
+        if isinstance(error, requests.exceptions.Timeout):
+            return {'error': 'Forespørselen tok for lang tid. Prøv igjen senere.', 'status_code': 504}
+        if isinstance(error, requests.exceptions.ConnectionError):
+            return {'error': 'Kunne ikke koble til vær-tjenesten. Sjekk internettforbindelsen.', 'status_code': 502}
+        if isinstance(error, requests.exceptions.HTTPError):
+            status = error.response.status_code if error.response is not None else 502
+            messages = {
+                401: 'Ugyldig API-nøkkel',
+                404: 'Byen ble ikke funnet',
+                429: 'For mange forespørsler. Prøv igjen senere.'
+            }
+            return {'error': messages.get(status, 'Feil ved henting av værdata. Prøv igjen senere.'),
+                    'status_code': status if status in (404, 429) else 502}
+        if isinstance(error, (ValueError, requests.exceptions.JSONDecodeError)):
+            return {'error': 'Ugyldig respons fra vær-tjenesten', 'status_code': 502}
+        return {'error': 'Feil ved henting av værdata. Prøv igjen senere.', 'status_code': 502}
+
+    def fetch_weather_data(self, endpoint: str, params: Optional[Dict] = None) -> Dict:
         try:
-            response = self.session.get(url)
-            response.raise_for_status()
-            data = response.json()
-            if 'cod' in data:
-                cod_value = data['cod']
-                if isinstance(cod_value, str):
-                    try:
-                        cod_value = int(cod_value)
-                    except ValueError:
-                        pass
-                if cod_value != 200:
-                    error_msg = data.get('message', 'Ukjent feil fra vær-API')
-                    return {'error': error_msg}
+            if endpoint not in ('weather', 'forecast'):
+                raise ValueError("Invalid weather endpoint")
+            data = self._get_json(self.base_url + endpoint, params or {})
+            if not isinstance(data, dict):
+                raise ValueError("Invalid weather response")
+            if str(data.get('cod', 200)) != '200':
+                status = str(data.get('cod'))
+                messages = {'404': 'Byen ble ikke funnet', '429': 'For mange forespørsler. Prøv igjen senere.'}
+                return {'error': messages.get(status, 'Feil fra vær-tjenesten'),
+                        'status_code': int(status) if status in messages else 502}
             return data
-        except requests.exceptions.Timeout:
-            logger.error("Timeout when fetching weather data")
-            return {'error': 'Forespørselen tok for lang tid. Prøv igjen senere.'}
-        except requests.exceptions.ConnectionError:
-            logger.error("Connection error when fetching weather data")
-            return {'error': 'Kunne ikke koble til vær-tjenesten. Sjekk internettforbindelsen.'}
-        except requests.exceptions.HTTPError as error:
-            logger.error(f"HTTP error when fetching weather data: {error}")
-            if error.response.status_code == 401:
-                return {'error': 'Ugyldig API-nøkkel'}
-            if error.response.status_code == 404:
-                return {'error': 'Byen ble ikke funnet'}
-            if error.response.status_code == 429:
-                return {'error': 'For mange forespørsler. Prøv igjen senere.'}
-            return {'error': f'HTTP-feil: {error.response.status_code}'}
-        except requests.exceptions.RequestException as error:
-            logger.error(f"Request error when fetching weather data: {error}")
-            return {'error': 'Feil ved henting av værdata. Prøv igjen senere.'}
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON response from weather API")
-            return {'error': 'Ugyldig respons fra vær-tjenesten'}
-        except Exception as error:
-            logger.error(f"Unexpected error when fetching weather data: {error}")
-            return {'error': 'En uventet feil oppstod. Prøv igjen senere.'}
+        except (requests.exceptions.RequestException, ValueError) as error:
+            return self._api_error(error)
 
-    def fetch_city_suggestions(self, query: str, limit: int = 8) -> List[Dict]:
+    def fetch_city_suggestions(self, query: str, limit: int = 8) -> List[Dict] | Dict:
         try:
-            url = f"http://api.openweathermap.org/geo/1.0/direct?q={query}&limit=25&appid={self.api_key}"
-            response = self.session.get(url)
-            response.raise_for_status()
-            data = response.json()
+            data = self._get_json(
+                "https://api.openweathermap.org/geo/1.0/direct",
+                {'q': query, 'limit': 5}
+            )
+            if not isinstance(data, list):
+                raise ValueError("Invalid geocoding response")
             suggestions: List[Dict] = []
             seen_cities = set()
             seen_names = set()
@@ -131,16 +138,17 @@ class WeatherAPIService:
                         if len(final_suggestions) >= limit:
                             break
             return final_suggestions[:limit]
-        except Exception as error:
-            logger.error(f"Error fetching city suggestions: {error}")
-            return []
+        except (requests.exceptions.RequestException, ValueError, TypeError, KeyError, AttributeError) as error:
+            return self._api_error(error)
 
     def reverse_geocode(self, lat: str, lon: str) -> Dict:
         try:
-            url = f"http://api.openweathermap.org/geo/1.0/reverse?lat={lat}&lon={lon}&limit=1&appid={self.api_key}"
-            response = self.session.get(url)
-            response.raise_for_status()
-            data = response.json()
+            data = self._get_json(
+                "https://api.openweathermap.org/geo/1.0/reverse",
+                {'lat': lat, 'lon': lon, 'limit': 1}
+            )
+            if not isinstance(data, list):
+                raise ValueError("Invalid geocoding response")
             if data:
                 location = data[0]
                 return {
@@ -149,9 +157,8 @@ class WeatherAPIService:
                     'state': location.get('state', '')
                 }
             return {'error': 'Kunne ikke finne stedsnavn for koordinatene'}
-        except Exception as error:
-            logger.error(f"Error in reverse geocoding: {error}")
-            return {'error': 'Feil ved reversering av koordinater'}
+        except (requests.exceptions.RequestException, ValueError, TypeError, KeyError, AttributeError) as error:
+            return self._api_error(error)
 
 class DatabaseCache:
     @staticmethod
@@ -178,16 +185,3 @@ class WeatherAnalytics:
     @staticmethod
     def get_popular_cities(limit: int = 10) -> List[Dict]:
         return analytics.get_popular_cities(limit)
-
-class FavoritesService:
-    @staticmethod
-    def get_user_favorites(user_ip: str) -> List[Dict]:
-        return favorites.get_user_favorites(user_ip)
-
-    @staticmethod
-    def add_favorite(user_ip: str, city: str, country: str) -> bool:
-        return favorites.add_favorite(user_ip, city, country)
-
-    @staticmethod
-    def remove_favorite(user_ip: str, city: str, country: str) -> bool:
-        return favorites.remove_favorite(user_ip, city, country)

@@ -11,7 +11,7 @@ export const LocationService = {
 
     tryAutoLocation() {
         if (!navigator.geolocation) {
-            console.log('Geolocation not supported by this browser');
+            window.WeatherApp?.hideInitialLoader();
             return;
         }
 
@@ -32,7 +32,7 @@ export const LocationService = {
 
                 UIUtils.showLoadingSpinner();
 
-                WeatherAPI.reverseGeocode(latitude, longitude, 'metric');
+                WeatherAPI.fetchWeatherData('/weather_by_coords', {lat: latitude, lon: longitude, unit: 'metric'});
             },
             (error) => {
                 console.log('Auto-location failed:', this.getErrorMessage(error));
@@ -58,7 +58,7 @@ export const LocationService = {
         if (lat !== null && lon !== null) {
             console.log('Fetching weather for provided coordinates:', lat, lon);
             UIUtils.showLoadingSpinner();
-            WeatherAPI.reverseGeocode(lat, lon, unit);
+            WeatherAPI.fetchWeatherData('/weather_by_coords', {lat, lon, unit});
             return;
         }
 
@@ -89,7 +89,7 @@ export const LocationService = {
 
                 console.log('Fetched geolocation:', latitude, longitude);
 
-                WeatherAPI.reverseGeocode(latitude, longitude, unit);
+                WeatherAPI.fetchWeatherData('/weather_by_coords', {lat: latitude, lon: longitude, unit});
             },
             (error) => {
                 UIUtils.hideLoadingSpinner();

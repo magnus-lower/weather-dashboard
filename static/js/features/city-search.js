@@ -93,9 +93,15 @@ export const CitySearch = {
 
     handleKeyNavigation(event) {
         const suggestionsList = document.getElementById('citySuggestions');
-        const suggestions = suggestionsList.querySelectorAll('li');
+        const suggestions = suggestionsList.querySelectorAll('[role=option]');
 
-        if (suggestions.length === 0) return;
+        if (suggestions.length === 0) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                window.WeatherApp.fetchWeatherForInputCity();
+            }
+            return;
+        }
 
         let currentIndex = Array.from(suggestions).findIndex(li => li.classList.contains('selected'));
 
@@ -127,19 +133,26 @@ export const CitySearch = {
     },
 
     selectSuggestion(index, suggestions) {
-        suggestions.forEach(li => li.classList.remove('selected'));
+        suggestions.forEach(li => {
+            li.classList.remove('selected');
+            li.setAttribute('aria-selected', 'false');
+        });
         if (suggestions[index]) {
             suggestions[index].classList.add('selected');
+            suggestions[index].setAttribute('aria-selected', 'true');
+            document.getElementById('cityInput').setAttribute('aria-activedescendant', suggestions[index].id);
         }
     },
 
     async fetchAndDisplaySuggestions(query) {
+        const requestId = this.suggestionRequestId = (this.suggestionRequestId || 0) + 1;
         try {
             const cities = await WeatherAPI.fetchCitySuggestions(query);
+            const input = document.getElementById('cityInput');
+            if (requestId !== this.suggestionRequestId || input.value.trim() !== query || document.activeElement !== input) return;
             this.displayCitySuggestions(cities, query);
         } catch (error) {
-            console.error('Error fetching city suggestions:', error);
-            this.clearCitySuggestions();
+            if (requestId === this.suggestionRequestId) this.clearCitySuggestions();
         }
     },
 
@@ -164,16 +177,27 @@ export const CitySearch = {
     },
 
     highlightMatch(text, query) {
-        if (!query || query.length < 2) return text;
-
-        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return text.replace(regex, '<strong>$1</strong>');
+        const fragment = document.createDocumentFragment();
+        const value = String(text);
+        const index = value.toLocaleLowerCase().indexOf(String(query).toLocaleLowerCase());
+        if (!query || index < 0) {
+            fragment.appendChild(document.createTextNode(value));
+            return fragment;
+        }
+        fragment.append(
+            document.createTextNode(value.slice(0, index)),
+            UIUtils.createElement('strong', '', value.slice(index, index + query.length)),
+            document.createTextNode(value.slice(index + query.length))
+        );
+        return fragment;
     },
 
     initSearchHistory() {
         try {
             const saved = localStorage.getItem('weather_search_history');
-            this.searchHistory = saved ? JSON.parse(saved) : [];
+            const parsed = saved ? JSON.parse(saved) : [];
+            this.searchHistory = Array.isArray(parsed)
+                ? parsed.filter(item => item && typeof item.display_name === 'string') : [];
         } catch (error) {
             console.error('Error loading search history:', error);
             this.searchHistory = [];
@@ -190,7 +214,10 @@ export const CitySearch = {
 
     displayCitySuggestions(cities, query) {
         const suggestionsList = document.getElementById('citySuggestions');
-        suggestionsList.innerHTML = '';
+        suggestionsList.replaceChildren();
+        const input = document.getElementById('cityInput');
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
 
         if (cities.length > 0) {
             const seenDisplayNames = new Set();
@@ -208,6 +235,8 @@ export const CitySearch = {
 
                 const li = document.createElement('li');
                 li.className = 'suggestion-item';
+                li.id = `city-option-${index}`;
+                li.setAttribute('aria-selected', 'false');
                 li.setAttribute('role', 'option');
                 li.setAttribute('tabindex', '-1');
 
@@ -216,7 +245,7 @@ export const CitySearch = {
 
                 const cityNameSpan = document.createElement('span');
                 cityNameSpan.className = 'suggestion-name';
-                cityNameSpan.innerHTML = this.highlightMatch(displayName, query);
+                cityNameSpan.appendChild(this.highlightMatch(displayName, query));
                 contentDiv.appendChild(cityNameSpan);
 
                 if (city.population && city.population > 0) {
@@ -227,7 +256,7 @@ export const CitySearch = {
                     popSpan.style.color = 'var(--secondary-color)';
                     popSpan.style.display = 'block';
                     contentDiv.appendChild(popSpan);
-                } else if (city.lat && city.lon) {
+                } else if (Number.isFinite(city.lat) && Number.isFinite(city.lon)) {
                     const coordsSpan = document.createElement('span');
                     coordsSpan.className = 'suggestion-coords';
                     coordsSpan.textContent = `${city.lat.toFixed(2)}, ${city.lon.toFixed(2)}`;
@@ -251,10 +280,10 @@ export const CitySearch = {
 
                 if (isAlreadyFavorite) {
                     favoriteBtn.classList.add('added');
-                    favoriteBtn.innerHTML = '<span class="favorite-text">Lagt til!</span>';
+                    favoriteBtn.replaceChildren(UIUtils.createElement('span', 'favorite-text', 'Lagt til!'));
                     favoriteBtn.title = 'Allerede i favoritter';
                 } else {
-                    favoriteBtn.innerHTML = '<span class="favorite-text">Favoritt</span>';
+                    favoriteBtn.replaceChildren(UIUtils.createElement('span', 'favorite-text', 'Favoritt'));
                 }
 
                 favoriteBtn.addEventListener('click', (e) => {
@@ -263,7 +292,7 @@ export const CitySearch = {
                         if (!isAlreadyFavorite) {
                             Favorites.addToFavorites(city);
                             favoriteBtn.classList.add('added');
-                            favoriteBtn.innerHTML = '<span class="favorite-text">Lagt til!</span>';
+                            favoriteBtn.replaceChildren(UIUtils.createElement('span', 'favorite-text', 'Lagt til!'));
                             favoriteBtn.title = 'Allerede i favoritter';
                         }
                     }
@@ -280,8 +309,10 @@ export const CitySearch = {
                     this.selectCity(displayName, city);
                 });
 
-                if ((city.is_exact_match && !suggestionsList.querySelector('.selected')) || index === 0) {
+                if (index === 0) {
                     li.classList.add('selected');
+                    li.setAttribute('aria-selected', 'true');
+                    input.setAttribute('aria-activedescendant', li.id);
                 }
 
                 suggestionsList.appendChild(li);
@@ -289,14 +320,12 @@ export const CitySearch = {
         } else {
             const li = document.createElement('li');
             li.className = 'no-results';
-            li.innerHTML = `
-                <div style="text-align: center; padding: 16px; color: var(--secondary-color);">
-                    <div style="font-style: italic;">Ingen byer funnet for "${query}"</div>
-                    <div style="font-size: 0.9rem; margin-top: 8px;">Prøv et annet søkeord eller sjekk stavemåten</div>
-                </div>
-            `;
+            const message = UIUtils.createElement('div', '', `Ingen byer funnet for "${query}". Prøv et annet søkeord eller sjekk stavemåten.`);
+            message.style.cssText = 'text-align: center; padding: 16px; color: var(--secondary-color); font-style: italic;';
+            li.appendChild(message);
             suggestionsList.appendChild(li);
         }
+        input.setAttribute('aria-expanded', 'true');
     },
 
     selectCity(cityName, cityData = null) {
@@ -306,7 +335,7 @@ export const CitySearch = {
             this.addToSearchHistory(cityName, cityData);
         }
 
-        if (cityData && cityData.lat && cityData.lon) {
+        if (cityData && Number.isFinite(cityData.lat) && Number.isFinite(cityData.lon)) {
             window.WeatherApp.updateState({
                 lastCity: cityName,
                 lastCountry: cityData.country || 'NO'
@@ -334,12 +363,19 @@ export const CitySearch = {
     },
 
     clearCitySuggestions() {
-        document.getElementById('citySuggestions').innerHTML = '';
+        this.suggestionRequestId = (this.suggestionRequestId || 0) + 1;
+        document.getElementById('citySuggestions').replaceChildren();
+        const input = document.getElementById('cityInput');
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
     },
 
     showSearchHistory() {
         const suggestionsList = document.getElementById('citySuggestions');
-        suggestionsList.innerHTML = '';
+        suggestionsList.replaceChildren();
+        const input = document.getElementById('cityInput');
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
 
         if (this.searchHistory.length === 0) return;
 
@@ -358,10 +394,13 @@ export const CitySearch = {
             return true;
         });
 
+        input.setAttribute('aria-expanded', 'true');
         uniqueHistory.slice(0, 5).forEach((historyItem, index) => {
             const li = document.createElement('li');
             li.textContent = historyItem.display_name;
             li.className = 'suggestion-item history-item';
+            li.id = `history-option-${index}`;
+            li.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
             li.setAttribute('role', 'option');
             li.setAttribute('tabindex', '-1');
 
@@ -381,6 +420,7 @@ export const CitySearch = {
 
             if (index === 0) {
                 li.classList.add('selected');
+                input.setAttribute('aria-activedescendant', li.id);
             }
 
             suggestionsList.appendChild(li);

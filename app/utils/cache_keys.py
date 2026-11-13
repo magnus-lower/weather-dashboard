@@ -1,19 +1,15 @@
-from datetime import datetime
-from flask import request
+from flask import has_request_context, request
 
 
-def make_cache_key(city: str = None, country: str = None, lat: str = None, lon: str = None) -> str:
-    if city and country:
-        current_hour = datetime.now().hour
-        return f"weather:city:{city.lower()}:{country.lower()}:{current_hour}"
-    if lat and lon:
-        current_hour = datetime.now().hour
-        return f"weather:coords:{lat}:{lon}:{current_hour}"
-    city = request.args.get('city', '').lower()
-    country = request.args.get('country', '').lower()
-    lat = request.args.get('lat', '')
-    lon = request.args.get('lon', '')
-    current_hour = datetime.now().hour
+def make_cache_key(city: str = None, country: str = None, lat: str = None,
+                   lon: str = None, unit: str = None, endpoint: str = 'weather') -> str:
+    if city is None and lat is None and has_request_context():
+        city = request.args.get('city', '')
+        country = request.args.get('country', '')
+        lat = request.args.get('lat', '')
+        lon = request.args.get('lon', '')
+    if unit is None:
+        unit = request.args.get('unit', 'metric') if has_request_context() else 'metric'
     if city:
-        return f"weather:city:{city}:{country}:{current_hour}"
-    return f"weather:coords:{lat}:{lon}:{current_hour}"
+        return f"{endpoint}:city:{city.lower()}:{(country or '').lower()}:{unit}"
+    return f"{endpoint}:coords:{lat}:{lon}:{unit}"

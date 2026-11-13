@@ -22,12 +22,12 @@ class MockResponse:
 def test_fetch_weather_data_success(monkeypatch):
     service = WeatherAPIService(api_key="test", base_url="http://example.com/")
 
-    def mock_get(url):
+    def mock_get(url, **kwargs):
         return MockResponse({"cod": 200, "name": "Oslo"}, status_code=200)
 
     monkeypatch.setattr(service.session, "get", mock_get)
 
-    data = service.fetch_weather_data("http://example.com/weather")
+    data = service.fetch_weather_data("weather")
 
     assert data["name"] == "Oslo"
 
@@ -35,12 +35,12 @@ def test_fetch_weather_data_success(monkeypatch):
 def test_fetch_weather_data_handles_http_error(monkeypatch):
     service = WeatherAPIService(api_key="test", base_url="http://example.com/")
 
-    def mock_get(url):
+    def mock_get(url, **kwargs):
         return MockResponse({"message": "Not found", "cod": 404}, status_code=404)
 
     monkeypatch.setattr(service.session, "get", mock_get)
 
-    data = service.fetch_weather_data("http://example.com/weather")
+    data = service.fetch_weather_data("weather")
 
     assert data["error"] == "Byen ble ikke funnet"
 
@@ -48,12 +48,12 @@ def test_fetch_weather_data_handles_http_error(monkeypatch):
 def test_fetch_weather_data_timeout(monkeypatch):
     service = WeatherAPIService(api_key="test", base_url="http://example.com/")
 
-    def mock_timeout(url):
+    def mock_timeout(url, **kwargs):
         raise requests.exceptions.Timeout()
 
     monkeypatch.setattr(service.session, "get", mock_timeout)
 
-    data = service.fetch_weather_data("http://example.com/weather")
+    data = service.fetch_weather_data("weather")
 
     assert "tok for lang tid" in data["error"]
 
@@ -67,9 +67,9 @@ def test_fetch_weather_data_invalid_json(monkeypatch):
 
             raise json.JSONDecodeError("invalid json", "{}", 0)
 
-    monkeypatch.setattr(service.session, "get", lambda url: InvalidJSONResponse({}, status_code=200))
+    monkeypatch.setattr(service.session, "get", lambda url, **kwargs: InvalidJSONResponse({}, status_code=200))
 
-    data = service.fetch_weather_data("http://example.com/weather")
+    data = service.fetch_weather_data("weather")
 
     assert "Ugyldig respons" in data["error"]
 
@@ -107,8 +107,8 @@ def test_weather_analytics_log_query():
 def test_fetch_weather_data_handles_error_codes(monkeypatch, payload, expected_count):
     service = WeatherAPIService(api_key="test", base_url="http://example.com/")
 
-    monkeypatch.setattr(service.session, "get", lambda url: MockResponse(payload, status_code=200))
+    monkeypatch.setattr(service.session, "get", lambda url, **kwargs: MockResponse(payload, status_code=200))
 
-    data = service.fetch_weather_data("http://example.com/weather")
+    data = service.fetch_weather_data("weather")
 
     assert "error" in data
