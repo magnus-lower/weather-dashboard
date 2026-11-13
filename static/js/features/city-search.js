@@ -429,32 +429,8 @@ export const CitySearch = {
 
     positionClearButton(inputElement) {
         const clearBtn = document.getElementById('clearInputBtn');
-
         if (clearBtn && inputElement) {
-            const inputValue = inputElement.value || '';
-
-            if (inputValue.trim().length === 0) {
-                clearBtn.classList.remove('visible');
-                return;
-            }
-
-            clearBtn.classList.add('visible');
-
-            const tempSpan = document.createElement('span');
-            tempSpan.style.position = 'absolute';
-            tempSpan.style.visibility = 'hidden';
-            tempSpan.style.whiteSpace = 'pre';
-            tempSpan.style.font = window.getComputedStyle(inputElement).font;
-            tempSpan.style.fontSize = window.getComputedStyle(inputElement).fontSize;
-            tempSpan.style.fontFamily = window.getComputedStyle(inputElement).fontFamily;
-            tempSpan.textContent = inputValue;
-
-            document.body.appendChild(tempSpan);
-            const textWidth = tempSpan.offsetWidth;
-            document.body.removeChild(tempSpan);
-
-            const leftPosition = 12 + textWidth + 15;
-            clearBtn.style.left = `${leftPosition}px`;
+            clearBtn.classList.toggle('visible', Boolean(inputElement.value?.trim()));
         }
     },
 

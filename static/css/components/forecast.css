@@ -28,7 +28,7 @@
 
 .hour-condition {
     font-size: 0.9rem;
-    color: var(--secondary-color);
+    color: var(--light-text);
     margin-bottom: 8px;
     text-transform: capitalize;
     font-weight: 500;
@@ -37,7 +37,7 @@
 
 .hour-precipitation {
     font-size: 0.85rem;
-    color: var(--primary-light);
+    color: var(--primary-color);
     font-weight: 700;
     background: rgba(30, 64, 175, 0.1);
     padding: 4px 8px;
@@ -47,7 +47,7 @@
 
 .hour-wind {
     font-size: 0.8rem;
-    color: var(--secondary-color);
+    color: var(--light-text);
     font-weight: 500;
 }
 
@@ -121,7 +121,7 @@ body.dark-mode .daily-card:hover {
 
 .day-date {
     font-size: 1rem;
-    color: var(--secondary-color);
+    color: var(--light-text);
     font-weight: 500;
 }
 
@@ -181,19 +181,19 @@ body.dark-mode .daily-card:hover {
 
 .temp-separator {
     font-size: 1.2rem;
-    color: var(--secondary-color);
+    color: var(--light-text);
     font-weight: 400;
 }
 
 .temp-min {
     font-size: 1.2rem;
     font-weight: 600;
-    color: var(--secondary-color);
+    color: var(--light-text);
 }
 
 .daily-condition {
     font-size: 1rem;
-    color: var(--secondary-color);
+    color: var(--light-text);
     text-transform: capitalize;
     text-align: right;
     font-weight: 500;

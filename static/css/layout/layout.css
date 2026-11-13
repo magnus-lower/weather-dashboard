@@ -192,7 +192,7 @@ body.dark-mode input[type="text"]::placeholder {
 }
 
 .input-with-location input[type="text"] {
-    padding-right: 140px;
+    padding-right: 156px;
 }
 
 
@@ -216,7 +216,8 @@ body.dark-mode input[type="text"]::placeholder {
     font-size: 16px;
     font-weight: bold;
     z-index: 10;
-    left: 10px;
+    left: auto;
+    right: 124px;
 }
 
 .clear-input-btn.visible {
@@ -412,6 +413,7 @@ body.dark-mode .favorite-item:hover {
     align-items: center;
     gap: 12px;
     flex: 1;
+    min-width: 0;
     font-size: 0.9rem;
 }
 
@@ -664,7 +666,7 @@ body.dark-mode .favorites-btn:hover {
 
 .weather-description {
     font-size: 1.3rem;
-    color: var(--secondary-color);
+    color: var(--light-text);
     text-transform: capitalize;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -714,7 +716,7 @@ body.dark-mode .detail-item:hover {
 
 .detail-label {
     font-size: 0.9rem;
-    color: var(--secondary-color);
+    color: var(--light-text);
     margin-bottom: 8px;
     font-weight: 600;
     text-transform: uppercase;
@@ -734,6 +736,13 @@ body.dark-mode .detail-item:hover {
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--light-text);
+}
+
+body.dark-mode .weather-description,
+body.dark-mode .detail-label,
+body.dark-mode .detail-value,
+body.dark-mode .weather-main h2 {
+    color: var(--dark-text);
 }
 
 
