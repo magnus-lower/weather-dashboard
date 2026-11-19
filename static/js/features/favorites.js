@@ -86,9 +86,8 @@ export const Favorites = {
         const create = UIUtils.createElement;
         favoritesList.replaceChildren(...favorites.map(city => {
             const item = create('div', 'favorite-item');
-            const select = create('button', 'favorite-name');
+            const select = create('button', 'favorite-name', city);
             select.type = 'button';
-            select.append(create('span', 'favorite-star-indicator'), create('span', '', city));
             select.addEventListener('click', () => {
                 this.fetchWeatherByCity(city);
                 this.closeFavoritesDropdown();
@@ -98,9 +97,13 @@ export const Favorites = {
             remove.title = 'Fjern fra favoritter';
             remove.setAttribute('aria-label', `Fjern ${city} fra favoritter`);
             remove.appendChild(create('span', 'remove-text', 'Fjern'));
-            remove.addEventListener('click', () => {
+            remove.addEventListener('click', (event) => {
+                // The clicked node is detached when the list is rebuilt below.
+                event.stopPropagation();
                 this.removeFromFavorites(city);
-                document.getElementById('favoritesList').querySelector('button')?.focus();
+                const nextFocus = document.getElementById('favoritesList').querySelector('button')
+                    || document.getElementById('favoritesDropdown');
+                nextFocus.focus();
             });
             item.append(select, remove);
             return item;
@@ -126,34 +129,34 @@ export const Favorites = {
         }
     },
 
+    formatCityName(city) {
+        const name = typeof city === 'string' ? city
+            : city.display_name || [city.name, city.state, city.country].filter(Boolean).join(', ');
+        // Older favorites can repeat the city as its region, e.g. New York, New York, US.
+        return name.split(',').map(part => part.trim())
+            .filter((part, index, parts) => part && (index === 0 || part.toLowerCase() !== parts[index - 1].toLowerCase()))
+            .join(', ');
+    },
+
     isCityInFavorites(city) {
-        const favorites = this.loadFavorites();
-        let cityName;
-
-        if (typeof city === 'string') {
-            cityName = city;
-        } else {
-            cityName = city.display_name || `${city.name}, ${city.country}`;
-        }
-
-        return favorites.includes(cityName);
+        const name = this.formatCityName(city).toLowerCase();
+        const parts = name.split(', ');
+        return this.loadFavorites().some(favorite => {
+            const savedName = this.formatCityName(favorite).toLowerCase();
+            if (savedName === name) return true;
+            const savedParts = savedName.split(', ');
+            // The weather response and older favorites can omit the region.
+            return parts.length >= 2 && savedParts.length >= 2
+                && parts[0] === savedParts[0] && parts.at(-1) === savedParts.at(-1)
+                && (parts.length === 2 || savedParts.length === 2);
+        });
     },
 
     addToFavorites(city) {
         const favorites = this.loadFavorites();
-        let cityName;
+        const cityName = this.formatCityName(city);
 
-        if (typeof city === 'string') {
-            cityName = city;
-        } else {
-            cityName = city.name;
-            if (city.state) {
-                cityName += `, ${city.state}`;
-            }
-            cityName += `, ${city.country}`;
-        }
-
-        if (!favorites.includes(cityName)) {
+        if (!this.isCityInFavorites(city)) {
             favorites.push(cityName);
             this.saveFavorites(favorites);
             this.updateFavoritesDisplay();

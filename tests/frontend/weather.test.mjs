@@ -56,6 +56,12 @@ test('weather icon paths cannot inject HTML or arbitrary URLs', () => {
     assert.equal(WeatherDisplay.iconUrl('" onerror="alert(1)'), '');
 });
 
+test('matching day/night icon silhouettes use the same artwork and palette', () => {
+    for (const condition of ['01', '02', '10']) {
+        assert.equal(WeatherDisplay.iconUrl(`${condition}n`), WeatherDisplay.iconUrl(`${condition}d`));
+    }
+});
+
 test('corrupt, unavailable, or incorrectly shaped favorites do not throw', () => {
     for (const value of ['{broken', '{}', 'null', '42']) {
         globalThis.localStorage = {getItem: () => value};
@@ -76,6 +82,26 @@ test('manual country searches send and update the parsed country', () => {
     assert.equal(requested.params.city, 'London');
     assert.equal(requested.params.country.toUpperCase(), 'GB');
     assert.equal(WeatherApp.state.lastCountry, 'GB');
+});
+
+test('saved favorite names match suggestions without losing known region distinctions', () => {
+    const previousStorage = globalThis.localStorage;
+    let saved = ['New York, New York, US', 'Trondheim, NO', 'Springfield, Illinois, US'];
+    globalThis.localStorage = {
+        getItem: () => JSON.stringify(saved),
+        setItem: (_, value) => {saved = JSON.parse(value);}
+    };
+    try {
+        assert.ok(Favorites.isCityInFavorites({name: 'New York', country: 'US', display_name: 'New York, US'}));
+        assert.ok(Favorites.isCityInFavorites({name: 'Trondheim', state: 'Trøndelag', country: 'NO'}));
+        assert.ok(Favorites.isCityInFavorites('  new york , US '));
+        assert.equal(Favorites.isCityInFavorites({name: 'Springfield', state: 'Missouri', country: 'US'}), false);
+        assert.equal(Favorites.isCityInFavorites({name: 'New York', country: 'GB'}), false);
+        Favorites.addToFavorites({name: 'New York', country: 'US'});
+        assert.equal(saved.length, 3);
+    } finally {
+        globalThis.localStorage = previousStorage;
+    }
 });
 
 test('an older weather response cannot replace a newer selection', async () => {
@@ -197,12 +223,15 @@ test('untrusted search, weather, and favorite values are rendered as text', () =
     assert.equal(document.getElementById('cityInput').attributes['aria-expanded'], 'true');
     WeatherDisplay.updateBackground = () => {};
     WeatherDisplay.fetchAndDisplayForecast = () => {};
-    WeatherDisplay.displayWeatherData({name: input, main: {temp: 1, feels_like: 0, humidity: 80},
+    const weather = {name: input, main: {temp: 1, feels_like: 0, humidity: 80},
         weather: [{icon: '01d', description: 'clear sky', main: 'Clear'}],
-        sys: {country: 'NO', sunrise: 1, sunset: 2}, coord: {lat: 0, lon: 0}, wind: {speed: 1}});
+        sys: {country: 'NO', sunrise: 1, sunset: 2}, coord: {lat: 0, lon: 0}, wind: {speed: 1}};
+    WeatherDisplay.displayWeatherData(weather);
     const text = document.getElementById('weatherData').textContent;
     assert.ok(text.includes(input));
-    assert.ok(text.includes('UV-indeksIkke tilgjengelig'));
+    assert.ok(!text.includes('UV-indeks'));
+    WeatherDisplay.displayWeatherData({...weather, uvi: 0});
+    assert.ok(document.getElementById('weatherData').textContent.includes('UV-indeks0'));
     globalThis.localStorage = {getItem: () => JSON.stringify([input])};
     Favorites.updateFavoritesDisplay();
     assert.ok(document.getElementById('favoritesList').textContent.includes(input));

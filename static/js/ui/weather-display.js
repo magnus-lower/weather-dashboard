@@ -14,7 +14,10 @@ export const WeatherDisplay = {
     },
 
     iconUrl(code) {
-        return /^\d{2}[dn]$/.test(code) ? `https://openweathermap.org/img/wn/${code}@2x.png` : '';
+        if (!/^\d{2}[dn]$/.test(code)) return '';
+        // These day/night PNGs share a silhouette; keep its color consistent.
+        const displayCode = code.replace(/^(01|02|10)n$/, '$1d');
+        return `https://openweathermap.org/img/wn/${displayCode}@2x.png`;
     },
 
     precipitationPercent(pop) {
@@ -44,17 +47,19 @@ export const WeatherDisplay = {
         );
         const details = create('div', 'weather-details');
         const grid = create('div', 'detail-grid');
-        const uv = Number.isFinite(data.uvi) && data.uvi >= 0 ? data.uvi : 'Ikke tilgjengelig';
+        // The current-weather endpoint does not supply UV; only show it when provided.
+        const uv = Number.isFinite(data.uvi) && data.uvi >= 0 ? data.uvi : null;
         const values = [
             ['thermometer-half', 'Føles som', `${Math.round(data.main.feels_like)}°C`],
             ['tint', 'Luftfuktighet', `${data.main.humidity}%`],
             ['wind', 'Vind', `${data.wind?.speed ?? '—'} m/s`],
-            ['sun', 'UV-indeks', uv],
+            ...(uv === null ? [] : [['sun', 'UV-indeks', uv]]),
             ['sun', 'Soloppgang', this.formatLocationTime(data.sys.sunrise, offset)],
             ['moon', 'Solnedgang', this.formatLocationTime(data.sys.sunset, offset)]
         ];
+        if (values.length === 5) grid.classList.add('five-details');
         values.forEach(([symbol, label, value], index) => {
-            const item = create('div', index >= 4 ? 'detail-item sun-item' : 'detail-item');
+            const item = create('div', index >= values.length - 2 ? 'detail-item sun-item' : 'detail-item');
             const info = create('div', 'detail-info');
             const title = create('div', 'detail-label');
             const glyph = create('i', `fas fa-${symbol}`);
@@ -108,8 +113,8 @@ export const WeatherDisplay = {
         forecastContainer.innerHTML = `
             <div class="forecast-section">
                 <div class="forecast-tabs">
-                    <button class="forecast-tab active" data-tab="hourly">Time-for-time prognose</button>
-                    <button class="forecast-tab" data-tab="daily">5-dagers prognose</button>
+                    <button class="forecast-tab active" data-tab="hourly" aria-pressed="true">Time-for-time prognose</button>
+                    <button class="forecast-tab" data-tab="daily" aria-pressed="false">5-dagers prognose</button>
                 </div>
 
                 <div class="forecast-content hourly-forecast active" id="hourlyForecast">
@@ -147,10 +152,14 @@ export const WeatherDisplay = {
             tab.addEventListener('click', () => {
                 const targetTab = tab.dataset.tab;
 
-                tabs.forEach(t => t.classList.remove('active'));
+                tabs.forEach(t => {
+                    t.classList.remove('active');
+                    t.setAttribute('aria-pressed', 'false');
+                });
                 contents.forEach(c => c.classList.remove('active'));
 
                 tab.classList.add('active');
+                tab.setAttribute('aria-pressed', 'true');
                 document.querySelector(`.${targetTab}-forecast`).classList.add('active');
             });
         });
@@ -215,11 +224,22 @@ export const WeatherDisplay = {
         const items = hourlyForecasts.map(forecast => {
             const item = create('div', 'hourly-item');
             const pop = this.precipitationPercent(forecast.pop);
+            const probability = create('div', 'hour-precipitation');
+            probability.append(
+                create('span', 'precipitation-label', 'Sjanse for nedbør'),
+                create('span', '', pop === null ? '—' : `${pop}%`)
+            );
+            probability.title = pop === null
+                ? 'Nedbørssjanse er ikke tilgjengelig'
+                : 'Sjanse for regn eller snø i dette 3-timersintervallet';
+            probability.setAttribute('aria-label', pop === null
+                ? 'Nedbørssjanse er ikke tilgjengelig'
+                : `Nedbørssjanse: ${pop} prosent i dette 3-timersintervallet.`);
             item.append(
                 create('div', 'hour-time', this.formatLocationTime(forecast.dt, offset)),
                 create('div', 'hour-temp', `${Math.round(forecast.main.temp)}°`),
                 create('div', 'hour-condition', WeatherTranslations.translate(forecast.weather[0].description)),
-                create('div', 'hour-precipitation', `Nedbør: ${pop === null ? 'Ikke tilgjengelig' : pop + '%'}`),
+                probability,
                 create('div', 'hour-wind', `Vind: ${forecast.wind.speed.toFixed(1)} m/s`)
             );
             return item;
@@ -247,10 +267,17 @@ export const WeatherDisplay = {
                 iconBox.appendChild(icon);
             }
             const pop = this.precipitationPercent(forecast.pop);
-            const probability = create('div', 'precipitation-chance', pop === null ? '—' : `${pop}%`);
+            const probability = create('div', 'precipitation-chance');
+            probability.append(
+                create('span', 'precipitation-label', 'Sjanse for nedbør'),
+                create('span', '', pop === null ? '—' : `${pop}%`)
+            );
             probability.title = pop === null
                 ? 'Nedbørsannsynlighet er ikke tilgjengelig'
                 : 'Høyeste nedbørsannsynlighet i et 3-timers intervall denne dagen';
+            probability.setAttribute('aria-label', pop === null
+                ? 'Nedbørssjanse er ikke tilgjengelig'
+                : `Nedbørssjanse: ${pop} prosent. Høyeste verdi i et 3-timersintervall denne dagen.`);
             iconBox.appendChild(probability);
             const temperatures = create('div', 'daily-temps');
             temperatures.append(
@@ -487,11 +514,7 @@ export const WeatherDisplay = {
             cloud.style.animationDuration = (Math.random() * 30 + 20) + 's';
 
             if (isDark) {
-                cloud.style.background = 'rgba(100, 100, 120, 0.6)';
-                const before = cloud.querySelector(':before');
-                if (before) {
-                    before.style.background = 'rgba(100, 100, 120, 0.6)';
-                }
+                cloud.style.setProperty('--cloud-color', 'rgba(100, 100, 120, 0.6)');
             }
 
             container.appendChild(cloud);
@@ -501,10 +524,11 @@ export const WeatherDisplay = {
     createRain(container, dropCount = 100) {
         for (let i = 0; i < dropCount; i++) {
             const drop = document.createElement('div');
+            const duration = Math.random() * 0.5 + 0.5;
             drop.className = 'raindrop';
             drop.style.left = Math.random() * 100 + '%';
-            drop.style.animationDelay = Math.random() * 2 + 's';
-            drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+            drop.style.animationDelay = -Math.random() * duration + 's';
+            drop.style.animationDuration = duration + 's';
             container.appendChild(drop);
         }
     },
@@ -514,12 +538,14 @@ export const WeatherDisplay = {
 
         for (let i = 0; i < 50; i++) {
             const flake = document.createElement('div');
+            const duration = Math.random() * 10 + 5;
             flake.className = 'snowflake';
             flake.textContent = snowflakes[Math.floor(Math.random() * snowflakes.length)];
             flake.style.left = Math.random() * 100 + '%';
             flake.style.fontSize = (Math.random() * 20 + 10) + 'px';
-            flake.style.animationDelay = Math.random() * 10 + 's';
-            flake.style.animationDuration = (Math.random() * 10 + 5) + 's';
+            // Start within the existing cycle so snowfall already fills the background.
+            flake.style.animationDelay = -Math.random() * duration + 's';
+            flake.style.animationDuration = duration + 's';
             container.appendChild(flake);
         }
     },
@@ -601,12 +627,13 @@ export const WeatherDisplay = {
     createAsh(container) {
         for (let i = 0; i < 40; i++) {
             const particle = document.createElement('div');
+            const duration = Math.random() * 4 + 4;
             particle.className = 'ash-particle';
             particle.style.width = (Math.random() * 6 + 2) + 'px';
             particle.style.height = (Math.random() * 6 + 2) + 'px';
             particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 6 + 's';
-            particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            particle.style.animationDelay = -Math.random() * duration + 's';
+            particle.style.animationDuration = duration + 's';
             container.appendChild(particle);
         }
     },
@@ -614,10 +641,11 @@ export const WeatherDisplay = {
     createHail(container) {
         for (let i = 0; i < 60; i++) {
             const hail = document.createElement('div');
+            const duration = Math.random() * 0.4 + 0.6;
             hail.className = `hail ${['small', 'medium', 'large'][Math.floor(Math.random() * 3)]}`;
             hail.style.left = Math.random() * 100 + '%';
-            hail.style.animationDelay = Math.random() * 2 + 's';
-            hail.style.animationDuration = (Math.random() * 0.4 + 0.6) + 's';
+            hail.style.animationDelay = -Math.random() * duration + 's';
+            hail.style.animationDuration = duration + 's';
             container.appendChild(hail);
         }
     },
@@ -625,11 +653,12 @@ export const WeatherDisplay = {
     createSleet(container) {
         for (let i = 0; i < 80; i++) {
             const sleet = document.createElement('div');
+            const duration = Math.random() * 0.8 + 0.8;
             const isRain = Math.random() > 0.4;
             sleet.className = `sleet ${isRain ? 'rain' : 'ice'}`;
             sleet.style.left = Math.random() * 100 + '%';
-            sleet.style.animationDelay = Math.random() * 2 + 's';
-            sleet.style.animationDuration = (Math.random() * 0.8 + 0.8) + 's';
+            sleet.style.animationDelay = -Math.random() * duration + 's';
+            sleet.style.animationDuration = duration + 's';
             container.appendChild(sleet);
         }
     },
@@ -642,7 +671,7 @@ export const WeatherDisplay = {
             const particle = document.createElement('div');
             particle.className = 'wind-particle';
             particle.style.top = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 3 + 's';
+            particle.style.animationDelay = -Math.random() * speed + 's';
             particle.style.animationDuration = speed + 's';
             container.appendChild(particle);
         }

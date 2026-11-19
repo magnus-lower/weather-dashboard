@@ -28,7 +28,7 @@
             <div class="input-group">
                 <label for="cityInput" class="visually-hidden">Skriv inn bynavn</label>
                 <div class="input-with-location">
-                    <input type="text" id="cityInput" placeholder="Skriv inn bynavn eller bruk lokasjonsknappen" role="combobox" aria-autocomplete="list" aria-controls="citySuggestions" aria-expanded="false" autocomplete="off">
+                    <input type="text" id="cityInput" placeholder="Søk etter en by" role="combobox" aria-autocomplete="list" aria-controls="citySuggestions" aria-expanded="false" autocomplete="off">
                     <button id="clearInputBtn" type="button" class="clear-input-btn" title="Tøm søkefelt" aria-label="Tøm søkefelt">
                         ×
                     </button>
@@ -47,7 +47,7 @@
                                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                                 </svg>
                             </button>
-                            <div class="favorites-dropdown" id="favoritesDropdown">
+                            <div class="favorites-dropdown" id="favoritesDropdown" tabindex="-1">
                                 <div class="favorites-header">
                                     <span>Favoritter</span>
                                 </div>
@@ -69,12 +69,35 @@
         </div>
     </div>
     <div id="initialLoader" class="initial-loader">
-        <div class="initial-loader-content">
-            <div class="initial-spinner"></div>
-            <h2>Laster værdata...</h2>
-            <p>Vent litt mens vi henter det siste været for deg</p>
+        <div class="initial-loader-content" role="status">
+            <div class="initial-spinner" aria-hidden="true"></div>
+            <p>Laster værdata…</p>
         </div>
     </div>
+    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position: absolute;">
+        <defs>
+            <!-- Map OpenWeather's gray (#48484a), orange (#ec6e4c), and white
+                 (#f2f2f1) pigments to natural colors, preserving the artwork's alpha. -->
+            <filter id="weather-icon-colors" color-interpolation-filters="sRGB">
+                <!-- Slate clouds (#94a3b8), gold sun/lightning (#fbbf24), original white. -->
+                <feColorMatrix values="0.650700 -0.097759 0 0 0.424268
+                                       0.082073 0.382633 0 0 0.508005
+                                       -1.275724 1.611018 0 0 0.626897
+                                       0 0 0 1 0"/>
+            </filter>
+            <filter id="precipitation-icon-colors" color-interpolation-filters="sRGB">
+                <!-- Blue rain (#60a5fa), gold accents, original white clouds. -->
+                <feColorMatrix values="0.971148 -0.112325 0 0 0.133979
+                                       0.069748 0.383193 0 0 0.519170
+                                       -1.682446 1.629505 0 0 0.995340
+                                       0 0 0 1 0"/>
+            </filter>
+            <filter id="snow-icon-color" color-interpolation-filters="sRGB">
+                <feFlood flood-color="#f2f2f1"/>
+                <feComposite in2="SourceAlpha" operator="in"/>
+            </filter>
+        </defs>
+    </svg>
     <script type="module" src="/static/js/main.js"></script>
 </body>
 </html>

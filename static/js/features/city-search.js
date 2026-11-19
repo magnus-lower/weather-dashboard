@@ -1,5 +1,6 @@
 import { UIUtils } from '../core/ui-utils.js';
 import { WeatherAPI } from '../api/weather-api.js';
+import { Favorites } from './favorites.js';
 
 export const CitySearch = {
     init() {
@@ -252,17 +253,11 @@ export const CitySearch = {
                     const popSpan = document.createElement('span');
                     popSpan.className = 'suggestion-coords';
                     popSpan.textContent = `Befolkning: ${city.population.toLocaleString()}`;
-                    popSpan.style.fontSize = '0.8rem';
-                    popSpan.style.color = 'var(--secondary-color)';
-                    popSpan.style.display = 'block';
                     contentDiv.appendChild(popSpan);
                 } else if (Number.isFinite(city.lat) && Number.isFinite(city.lon)) {
                     const coordsSpan = document.createElement('span');
                     coordsSpan.className = 'suggestion-coords';
                     coordsSpan.textContent = `${city.lat.toFixed(2)}, ${city.lon.toFixed(2)}`;
-                    coordsSpan.style.fontSize = '0.8rem';
-                    coordsSpan.style.color = 'var(--secondary-color)';
-                    coordsSpan.style.display = 'block';
                     contentDiv.appendChild(coordsSpan);
                 }
 
@@ -276,25 +271,25 @@ export const CitySearch = {
                 favoriteBtn.type = 'button';
                 favoriteBtn.title = 'Legg til i favoritter';
 
-                const isAlreadyFavorite = typeof Favorites !== 'undefined' && Favorites.isCityInFavorites(city);
+                const isAlreadyFavorite = Favorites.isCityInFavorites(city);
 
                 if (isAlreadyFavorite) {
                     favoriteBtn.classList.add('added');
-                    favoriteBtn.replaceChildren(UIUtils.createElement('span', 'favorite-text', 'Lagt til!'));
+                    favoriteBtn.replaceChildren(UIUtils.createElement('span', 'favorite-text', 'Lagret'));
                     favoriteBtn.title = 'Allerede i favoritter';
+                    favoriteBtn.disabled = true;
                 } else {
                     favoriteBtn.replaceChildren(UIUtils.createElement('span', 'favorite-text', 'Favoritt'));
                 }
 
                 favoriteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (typeof Favorites !== 'undefined') {
-                        if (!isAlreadyFavorite) {
-                            Favorites.addToFavorites(city);
-                            favoriteBtn.classList.add('added');
-                            favoriteBtn.replaceChildren(UIUtils.createElement('span', 'favorite-text', 'Lagt til!'));
-                            favoriteBtn.title = 'Allerede i favoritter';
-                        }
+                    if (!Favorites.isCityInFavorites(city)) Favorites.addToFavorites(city);
+                    if (Favorites.isCityInFavorites(city)) {
+                        favoriteBtn.classList.add('added');
+                        favoriteBtn.replaceChildren(UIUtils.createElement('span', 'favorite-text', 'Lagret'));
+                        favoriteBtn.title = 'Allerede i favoritter';
+                        favoriteBtn.disabled = true;
                     }
                 });
 
@@ -381,7 +376,7 @@ export const CitySearch = {
 
         const headerLi = document.createElement('li');
         headerLi.className = 'suggestions-header';
-        headerLi.innerHTML = '<span style="font-size: 0.9rem; color: var(--secondary-color); font-weight: 600;">Nylige søk</span>';
+        headerLi.textContent = 'Nylige søk';
         suggestionsList.appendChild(headerLi);
 
         const seenNames = new Set();
@@ -397,7 +392,6 @@ export const CitySearch = {
         input.setAttribute('aria-expanded', 'true');
         uniqueHistory.slice(0, 5).forEach((historyItem, index) => {
             const li = document.createElement('li');
-            li.textContent = historyItem.display_name;
             li.className = 'suggestion-item history-item';
             li.id = `history-option-${index}`;
             li.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
@@ -406,9 +400,9 @@ export const CitySearch = {
 
             const historyIcon = document.createElement('span');
             historyIcon.className = 'history-icon';
-            historyIcon.style.marginRight = '8px';
-            historyIcon.style.fontSize = '0.9rem';
-            li.prepend(historyIcon);
+            historyIcon.setAttribute('aria-hidden', 'true');
+            const name = UIUtils.createElement('span', 'suggestion-name', historyItem.display_name);
+            li.append(historyIcon, name);
 
             li.addEventListener('click', () => {
                 const cityInput = document.getElementById('cityInput');

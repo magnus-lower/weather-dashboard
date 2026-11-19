@@ -27,8 +27,8 @@ export function updateLanguage(lang, firstLoad = false) {
     const cityInput = document.getElementById('cityInput');
     if (cityInput) {
         const placeholder = lang === 'no'
-            ? 'Skriv inn bynavn eller bruk lokasjonsknappen'
-            : 'Enter city name or use location button';
+            ? 'Søk etter en by'
+            : 'Search for a city';
         cityInput.placeholder = placeholder;
     }
 
